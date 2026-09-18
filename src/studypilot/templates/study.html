@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StudyPilot 本地学习入口</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='study.css') }}">
+  <script src="{{ url_for('static', path='study.js') }}" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">STUDYPILOT · LOCAL STUDY</p>
+      <h1>把今天最值得学的一小块，真正学会</h1>
+      <p class="subtitle">资料、计划和教学 Session 都来自本地 SQLite；页面只是现有服务的轻量入口。</p>
+    </div>
+    <div class="provider-card" aria-label="provider 状态">
+      <span class="status-dot {% if provider.active_llm %}status-ready{% else %}status-demo{% endif %}"></span>
+      <strong>{{ provider.label }}</strong>
+      <small>{{ provider.llm_hint }}</small>
+      <small>{{ document_mcp.label }}</small>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    {% if notice %}
+    <div class="flash flash-success" role="status">{{ notice }}</div>
+    {% endif %}
+    {% if error %}
+    <div class="flash flash-error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <section class="panel selector-panel">
+      <div>
+        <p class="eyebrow">WORKSPACE</p>
+        <h2>选择当前课程与目标</h2>
+      </div>
+      <form method="get" action="/study" class="selector-form">
+        <label>课程
+          <select name="course_id" onchange="this.form.submit()">
+            <option value="">请选择课程</option>
+            {% for course in courses %}
+            <option value="{{ course.id }}" {% if course.id == selected_course_id %}selected{% endif %}>{{ course.name }}（{{ course.id }}）</option>
+            {% endfor %}
+          </select>
+        </label>
+        {% if selected_course_id %}
+        <label>目标
+          <select name="goal_id" onchange="this.form.submit()">
+            <option value="">请选择目标</option>
+            {% for goal in goals %}
+            <option value="{{ goal.id }}" {% if goal.id == selected_goal_id %}selected{% endif %}>{{ goal.id }} · {{ goal.available_minutes }} 分钟</option>
+            {% endfor %}
+          </select>
+        </label>
+        {% endif %}
+        <noscript><button class="button secondary" type="submit">选择</button></noscript>
+      </form>
+    </section>
+
+    <div class="dashboard-grid">
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">COURSE</p>
+            <h2>课程</h2>
+          </div>
+        </div>
+        <form method="post" action="/study/courses" class="stack-form">
+          <label>课程 ID<input name="course_id" required maxlength="100" placeholder="probability"></label>
+          <label>课程名称<input name="name" required maxlength="200" placeholder="概率论"></label>
+          <button class="button" type="submit">保存课程</button>
+        </form>
+        {% if courses %}
+        <ul class="compact-list">
+          {% for course in courses %}
+          <li><a href="/study?course_id={{ course.id }}">{{ course.name }}</a><code>{{ course.id }}</code></li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">还没有课程，先在上方创建一个。</p>
+        {% endif %}
+      </section>
+
+      <section class="panel {% if not selected_course_id %}panel-muted{% endif %}">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">GOAL</p>
+            <h2>考试目标</h2>
+          </div>
+        </div>
+        {% if selected_course_id %}
+        <form method="post" action="/study/courses/{{ selected_course_id }}/goals" class="stack-form">
+          <label>目标 ID<input name="goal_id" required maxlength="100" placeholder="final"></label>
+          <label>考试时间<input name="exam_at" required type="datetime-local"></label>
+          <label>可用分钟<input name="available_minutes" required type="number" min="1" max="100000" value="60"></label>
+          <button class="button" type="submit">保存目标</button>
+        </form>
+        {% if goals %}
+        <ul class="compact-list">
+          {% for goal in goals %}
+          <li><a href="/study?course_id={{ selected_course_id }}&goal_id={{ goal.id }}">{{ goal.id }}</a><span>{{ goal.available_minutes }} 分钟</span></li>
+          {% endfor %}
+        </ul>
+        {% else %}<p class="muted">为当前课程创建一个考试目标。</p>{% endif %}
+        {% else %}<p class="muted">先选择或创建课程。</p>{% endif %}
+      </section>
+    </div>
+
+    <section class="panel {% if not selected_course_id %}panel-muted{% endif %}">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">TOPICS</p>
+          <h2>考点与预算输入</h2>
+        </div>
+        <span class="hint">每行：id|名称|分值|学习分钟|掌握状态|前置id</span>
+      </div>
+      {% if selected_course_id %}
+      <form method="post" action="/study/courses/{{ selected_course_id }}/topics" class="stack-form">
+        <label>考点清单
+          <textarea name="topics_text" rows="6" required placeholder="bayes|贝叶斯公式|10|20|UNSEEN|
+normal|正态分布|8|15|FRAGILE|">{{ topic_lines }}</textarea>
+        </label>
+        <button class="button" type="submit">保存考点</button>
+      </form>
+      {% if topics %}
+      <div class="table-wrap"><table>
+        <thead><tr><th>考点</th><th>分值</th><th>学习成本</th><th>掌握状态</th></tr></thead>
+        <tbody>{% for topic in topics %}<tr><td>{{ topic.name }} <code>{{ topic.id }}</code></td><td>{{ topic.exam_points }}</td><td>{{ topic.learning_minutes }} 分钟</td><td><span class="mastery mastery-{{ topic.mastery.value|lower }}">{{ topic.mastery.value }}</span></td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% endif %}
+      {% else %}<p class="muted">先选择课程。</p>{% endif %}
+    </section>
+
+    <div class="dashboard-grid">
+      <section class="panel {% if not selected_goal_id %}panel-muted{% endif %}">
+        <div class="panel-heading">
+          <div><p class="eyebrow">PLAN</p><h2>复习计划</h2></div>
+          {% if selected_goal_id %}<form method="post" action="/study/courses/{{ selected_course_id }}/plan"><input type="hidden" name="goal_id" value="{{ selected_goal_id }}"><button class="button secondary" type="submit">重新生成</button></form>{% endif %}
+        </div>
+        {% if plan %}
+        <p class="muted">预算 {{ plan.budget_minutes }} 分钟 · 已安排 {{ plan.planned_minutes }} 分钟</p>
+        <ul class="plan-list">
+          {% for item in plan.items %}
+          <li class="plan-item plan-{{ item.tier.value|lower }}"><div><span class="tier-label">{% if item.tier.value == 'MUST' %}必学{% elif item.tier.value == 'STRIVE' %}争取{% else %}暂缓{% endif %}</span><strong>{{ item.topic_name }}</strong></div><span>{{ item.estimated_minutes }} 分钟</span><small>{{ item.reasons|join('；') }}</small></li>
+          {% endfor %}
+        </ul>
+        {% elif selected_goal_id %}<p class="muted">还没有计划，点击“生成计划”。</p>
+        {% else %}<p class="muted">先选择考试目标。</p>{% endif %}
+      </section>
+
+      <section class="panel {% if not selected_course_id %}panel-muted{% endif %}">
+        <div class="panel-heading"><div><p class="eyebrow">SOURCES</p><h2>资料</h2></div></div>
+        {% if selected_course_id %}
+        <form method="post" action="/study/courses/{{ selected_course_id }}/sources" enctype="multipart/form-data" class="stack-form">
+          <label>上传文件<input name="file" type="file" required></label>
+          <div class="form-row"><label>类型<select name="document_kind"><option value="COURSE_MATERIAL">课程资料</option><option value="PERSONAL_NOTE">个人笔记</option><option value="EXAM_PAPER">真题</option></select></label><label>可信度<select name="trust_level"><option value="MEDIUM">中</option><option value="HIGH">高</option><option value="LOW">低</option></select></label></div>
+          <label>来源说明<input name="origin" placeholder="课程群 / 自己整理"></label>
+          <button class="button" type="submit">上传资料</button>
+        </form>
+        {% if sources %}
+        <ul class="source-list">{% for source in sources %}<li><div><strong>{{ source.asset.display_name }}</strong><small>{{ source.asset.document_kind.value }} · {{ source.blob.parse_status.value }}</small></div><form method="post" action="/study/sources/{{ source.asset.id }}/parse"><select name="parser_kind"><option value="TEXT">纯文本</option><option value="MARKDOWN">Markdown</option></select><label class="checkbox-label"><input type="checkbox" name="external" value="true"> 外部 MCP</label><input name="chapter" placeholder="PDF 章节（可选）" maxlength="80"><button class="text-button" type="submit">解析</button></form></li>{% endfor %}</ul>
+        {% else %}<p class="muted">还没有资料。</p>{% endif %}
+        {% else %}<p class="muted">先选择课程。</p>{% endif %}
+      </section>
+    </div>
+
+    <section class="panel {% if not selected_goal_id %}panel-muted{% endif %}">
+      <div class="panel-heading"><div><p class="eyebrow">TEACHING SESSION</p><h2>教学 Session</h2></div></div>
+      {% if selected_goal_id %}
+      <form method="post" action="/study/courses/{{ selected_course_id }}/teaching-sessions" class="inline-form">
+        <input type="hidden" name="goal_id" value="{{ selected_goal_id }}">
+        <label>Session ID（可选）<input name="session_id" placeholder="自动生成稳定 ID"></label>
+        <label class="checkbox-label"><input type="checkbox" name="start" value="true"> 创建后立即启动</label>
+        <button class="button" type="submit">创建 Session</button>
+      </form>
+      {% if sessions %}
+      <ul class="session-list">{% for session in sessions %}<li class="{% if session.session_id == selected_session_id %}selected{% endif %}"><a href="/study?course_id={{ selected_course_id }}&goal_id={{ selected_goal_id }}&session_id={{ session.session_id }}"><strong>{{ session.session_id }}</strong><span>{{ session.status.value }} · v{{ session.version }}</span></a>{% if session.status.value == 'CREATED' %}<form method="post" action="/study/sessions/{{ session.session_id }}/start"><button class="text-button" type="submit">启动</button></form>{% endif %}</li>{% endfor %}</ul>
+      {% else %}<p class="muted">创建一个 Session 开始教学。</p>{% endif %}
+      {% else %}<p class="muted">先选择考试目标。</p>{% endif %}
+    </section>
+
+    {% if teaching_state %}
+    <section class="panel teaching-panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">CURRENT SESSION · {{ teaching_state.session_id }}</p><h2>当前教学状态</h2></div>
+        <div class="state-summary"><span class="state-chip">{{ teaching_state.status.value }}</span><span>版本 v{{ teaching_state.version }}</span><span>剩余 {{ teaching_state.remaining_minutes }} 分钟</span><span class="mastery mastery-{{ teaching_state.mastery_state.value|lower }}">{{ teaching_state.mastery_state.value }}</span></div>
+      </div>
+      {% if teaching_state.teaching_text %}<article class="lesson"><h3>讲解</h3><p>{{ teaching_state.teaching_text }}</p></article>{% endif %}
+      {% if teaching_state.question %}<article class="question"><h3>问题</h3><p>{{ teaching_state.question }}</p></article>{% endif %}
+
+      {% if teaching_state.status.value == 'WAITING_ANSWER' %}
+      <form method="post" action="/study/sessions/{{ teaching_state.session_id }}/answer" class="answer-form" data-answer-form>
+        <input type="hidden" name="message_id" value="{{ teaching_state.session_id }}-{{ teaching_state.version }}-{{ range(1000000)|random }}">
+        <input type="hidden" name="expected_version" value="{{ teaching_state.version }}">
+        <label>你的回答<textarea name="answer" rows="5" placeholder="把你真正能复述出来的内容写下来；留空也会被记录为 GAP"></textarea></label>
+        <div class="answer-actions"><label>本轮用时（分钟）<input name="spent_minutes" type="number" min="0" max="100000" value="0"></label><button class="button" type="submit">提交答案</button><span class="muted">提交后会评价并重排下一项。</span></div>
+      </form>
+      {% elif teaching_state.status.value == 'CREATED' %}<p class="muted">Session 尚未启动。点击上方“启动”。</p>{% endif %}
+
+      {% if teaching_state.evaluation %}
+      <article class="evaluation"><div class="evaluation-heading"><h3>评分反馈</h3><span class="score">{{ (teaching_state.evaluation.score * 100)|round(0) }}%</span><span class="mastery mastery-{{ teaching_state.evaluation.mastery_state.value|lower }}">{{ teaching_state.evaluation.mastery_state.value }}</span></div><p>{{ teaching_state.evaluation.reason }}</p><ul class="rubric-list">{% for point in teaching_state.evaluation.point_evaluations %}<li><span class="point-mark {% if point.satisfied %}point-ok{% else %}point-gap{% endif %}">{% if point.satisfied %}✓{% else %}×{% endif %}</span><div><strong>{{ point.scoring_point_id }}</strong><p>{{ point.reason }}</p>{% if point.evidence %}<small>证据：{{ point.evidence|join('；') }}</small>{% endif %}{% if point.citations %}<small>引用：{{ point.citations|join('、') }}</small>{% endif %}</div></li>{% endfor %}</ul></article>
+      {% endif %}
+
+      {% if teaching_state.knowledge_window and teaching_state.knowledge_window.items %}
+      <article class="citations"><h3>Knowledge Window 引用</h3><p class="muted">展开可查看来源、章节与原文，不只看编号。</p>{% for item in teaching_state.knowledge_window.items %}<details><summary><code>{{ item.hit.citation.block_id }}</code> · {{ item.hit.citation.display_name }}{% if item.relation.value != 'UNKNOWN' %} · {{ item.relation.value }}{% endif %}</summary><dl><dt>来源</dt><dd>{{ item.hit.citation.display_name }}（{{ item.hit.citation.source_asset_id }}）</dd><dt>章节 / 页码</dt><dd>{{ item.hit.citation.section or '未标注' }}{% if item.hit.citation.page_number %} · 第 {{ item.hit.citation.page_number }} 页{% endif %}</dd><dt>原文</dt><dd class="quote">{{ item.hit.citation.quote }}</dd></dl></details>{% endfor %}</article>
+      {% endif %}
+    </section>
+    {% endif %}
+  </main>
+
+  <footer class="footer">本地 demo · SQLite 持久化 · 默认 Deterministic provider · 不会在未配置时冒充真实模型</footer>
+</body>
+</html>

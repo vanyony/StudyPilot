@@ -1,0 +1,1533 @@
+{
+  "dataset_id": "probability-bm25-v1",
+  "retrieval_method": "bm25",
+  "config": {
+    "k1": 1.5,
+    "b": 0.75,
+    "title_weight": 2
+  },
+  "recall_at_5": 0.8666666666666667,
+  "hits": 26,
+  "total": 30,
+  "query_results": [
+    {
+      "id": "lexical-01",
+      "kind": "LEXICAL",
+      "query": "贝叶斯公式 由果推因",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "670cf3f0e2b76877118b03231819d1a9aa9478d96a4ce2e10308879baecd4994",
+        "6a563591647599dd771e77935c896a1c8cdfacc04a73b66d3d3c733249e8f160",
+        "13742acf4b507d60acf5d55b43a7bc7913cc0549720aeb128c4fc4707b1a8124",
+        "ba475be1f91ab97069c80e86965da637a1d68982497efc7d75907cb52792506b",
+        "05125db044d4313c71e78659c4e028f242a1fed6c80451d5619dc990eb50818c",
+        "020e95ef0c8274b231118f9d0e2f6f46c909efd2a63aefe9d4dd6742afaaa2dd",
+        "e5375bdf80199dadf5ea103d3acf3eb6cd72ab0870b6b3e617a9ff7facc71d78",
+        "a0e56572c05fd497f71389406cafdb3ed1a09e39cf9e71d37a7a22a1b544322c",
+        "68cbab5366721adf8fdbc7b446899d96277ad187eee30246d0f7cad7837dc2cf"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 56.980983,
+          "block_id": "a0e56572c05fd497f71389406cafdb3ed1a09e39cf9e71d37a7a22a1b544322c",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "三个核心公式"
+        },
+        {
+          "rank": 2,
+          "score": 40.817124,
+          "block_id": "020e95ef0c8274b231118f9d0e2f6f46c909efd2a63aefe9d4dd6742afaaa2dd",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "三个核心公式"
+        },
+        {
+          "rank": 3,
+          "score": 20.795143,
+          "block_id": "e8e545b0ab42b7a0c0653911934665afdaa244e204b496f942ac1283642acc0b",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "1.6 条件概率与独立性的综合"
+        },
+        {
+          "rank": 4,
+          "score": 20.789405,
+          "block_id": "05125db044d4313c71e78659c4e028f242a1fed6c80451d5619dc990eb50818c",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "三个核心公式"
+        },
+        {
+          "rank": 5,
+          "score": 12.365501,
+          "block_id": "6a563591647599dd771e77935c896a1c8cdfacc04a73b66d3d3c733249e8f160",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "三个核心公式"
+        }
+      ]
+    },
+    {
+      "id": "lexical-02",
+      "kind": "LEXICAL",
+      "query": "离散型随机变量的分布律",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "91efb53c4206f44f778266bf60a4dc9b5f878cdf1efa447b72f936c80a096c38",
+        "1fb6da0a1bc9ae6c483618005f6115f5ca75e4e1559cf8914ff9cf61b65c4106",
+        "1149bd9d0f4d5ad4fcef36aca2e6b7bf6cbba742bfb1238c34972295d4948b4a",
+        "66a047ac6267cf0b3c8af0090b0dbf6affd906b1079647c82afdb4b191d5adfc"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 68.299015,
+          "block_id": "66a047ac6267cf0b3c8af0090b0dbf6affd906b1079647c82afdb4b191d5adfc",
+          "source": "ch2-概率论基础篇.md",
+          "section": "分布律（概率分布）"
+        },
+        {
+          "rank": 2,
+          "score": 59.784983,
+          "block_id": "91efb53c4206f44f778266bf60a4dc9b5f878cdf1efa447b72f936c80a096c38",
+          "source": "ch2-概率论基础篇.md",
+          "section": "分布律（概率分布）"
+        },
+        {
+          "rank": 3,
+          "score": 41.598649,
+          "block_id": "ebd35300cb6cd8132010b3d21db70627fe3a06de04a7e82044eea85a51cb14e2",
+          "source": "ch4-概率论提高篇.md",
+          "section": "二维随机变量函数的分布"
+        },
+        {
+          "rank": 4,
+          "score": 39.791674,
+          "block_id": "a3699b93831a18373433e22f8efa6dcacdfe4e50b4c4f5273c38a494c837b0a3",
+          "source": "ch2-概率论基础篇.md",
+          "section": "2.3 一维随机变量函数的分布"
+        },
+        {
+          "rank": 5,
+          "score": 39.637865,
+          "block_id": "585bd6a3361fd098ad61991a0975eadc7850ff7bb974515df3498df41d64ccf0",
+          "source": "ch2-概率论基础篇.md",
+          "section": "随机变量函数的期望（无需先求分布！）"
+        }
+      ]
+    },
+    {
+      "id": "lexical-03",
+      "kind": "LEXICAL",
+      "query": "稀有事件发生次数 期望等于方差",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "d65db99dfac495df96db10c67025eb21a1521f7f46249db6edd2548c86c3dc58",
+        "6c791cdb585568df34f118bae207de1f0a988169c74f6470015fbbb9b389ac06",
+        "85e50d966ab7f497a7ce3a0b4f797d5d8d5789d22315e4475c03a53f73320fc0",
+        "c8758be8beda3d9249a8e4a5fb592b39060e1e6ba648dea6eedbb3b5e03795f4",
+        "ff954cbb32cc6dfef0599bfb679b61572058bd3e405d4d8456494efc42c0fcd8",
+        "29aae6c66668cb7ba06df1a7edab8a99cbebecb1f53bf4e24126a00b7726412e",
+        "be5f8dff71c61a38fae17fa82f909ef2e4d3883756eba3db896db374d1bf421c",
+        "9d56542c901a1a68a1faff3b045a56f6c7beb481bbcd26c0f4512c92617174b0",
+        "a514805c7962586b1bee4ed998d428ab05045e6218b3676b2c176dc678537204"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 69.864951,
+          "block_id": "85e50d966ab7f497a7ce3a0b4f797d5d8d5789d22315e4475c03a53f73320fc0",
+          "source": "ch3-常见分布.md",
+          "section": "泊松分布 $X \\sim P(\\lambda)$"
+        },
+        {
+          "rank": 2,
+          "score": 32.683198,
+          "block_id": "db9bd9dfb74a9744b01aafba408092b77c9c7fa8dde149e8d406d006741a2d17",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "事件的运算"
+        },
+        {
+          "rank": 3,
+          "score": 29.293574,
+          "block_id": "3ff2e6678da60f111b332fc2ca0b8123ef1379f326aa32c74d27fc768de8884f",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "事件的关系"
+        },
+        {
+          "rank": 4,
+          "score": 29.253151,
+          "block_id": "7d288fb97b0a7c134c739b156d194b6c5946910d9f48908780e2e281fad488a0",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "条件概率定义"
+        },
+        {
+          "rank": 5,
+          "score": 28.785281,
+          "block_id": "f95ce175745f8a383ba51de8f7bfc553708e389462ae2c3d831aee7443f9fc39",
+          "source": "ch4-概率论提高篇.md",
+          "section": "重方差公式"
+        }
+      ]
+    },
+    {
+      "id": "lexical-04",
+      "kind": "LEXICAL",
+      "query": "二项分布样本量很大时用正态近似",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "f7b92f104a1e54724b1f6011996114181ac9c805b6ab7fe16c2542f47474b924",
+        "f5981f220d9b9c03f6f8200f30d0ad3a41ae33980974332b7f0e2540a107379f"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 61.046173,
+          "block_id": "f7b92f104a1e54724b1f6011996114181ac9c805b6ab7fe16c2542f47474b924",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "棣莫弗-拉普拉斯定理（二项分布的正态近似）"
+        },
+        {
+          "rank": 2,
+          "score": 53.960203,
+          "block_id": "f5981f220d9b9c03f6f8200f30d0ad3a41ae33980974332b7f0e2540a107379f",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "棣莫弗-拉普拉斯定理（二项分布的正态近似）"
+        },
+        {
+          "rank": 3,
+          "score": 32.703107,
+          "block_id": "5a54bcff7749e61d0fe3267d028c90810f3fa2761778dcc8412aeff49a47fa5d",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "林德伯格-莱维定理（独立同分布CLT）"
+        },
+        {
+          "rank": 4,
+          "score": 27.99145,
+          "block_id": "0c3649b898778473509d43f4a137cd420385257f9e28047549d8823dc0d5f3ab",
+          "source": "ch3-常见分布.md",
+          "section": "二项分布 $X \\sim B(n, p)$"
+        },
+        {
+          "rank": 5,
+          "score": 27.538269,
+          "block_id": "9bd6017f258b810826b27f63f4c6fa4f49850fa8d04367fc23e78fb1c8208290",
+          "source": "ch3-常见分布.md",
+          "section": "二项分布 $X \\sim B(n, p)$"
+        }
+      ]
+    },
+    {
+      "id": "lexical-05",
+      "kind": "LEXICAL",
+      "query": "最大似然估计 写似然函数取对数求导",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "720c2fa58a4e7563ce1822638a0ecc8702f2ab222e94fee707b6da4fb9e5cf10",
+        "daa59d03ef23dc644e539c81abb57e4aea2475bbe36d3e1b8770378c5094f315",
+        "69337acc53e797f7685537fc06cc5f29f4f0a0d022a2e89281da779b614a6fdd"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 95.971281,
+          "block_id": "daa59d03ef23dc644e539c81abb57e4aea2475bbe36d3e1b8770378c5094f315",
+          "source": "ch7-点估计.md",
+          "section": "7.3 最大似然估计（MLE）"
+        },
+        {
+          "rank": 2,
+          "score": 70.703119,
+          "block_id": "69337acc53e797f7685537fc06cc5f29f4f0a0d022a2e89281da779b614a6fdd",
+          "source": "ch7-点估计.md",
+          "section": "7.3 最大似然估计（MLE）"
+        },
+        {
+          "rank": 3,
+          "score": 69.63153,
+          "block_id": "720c2fa58a4e7563ce1822638a0ecc8702f2ab222e94fee707b6da4fb9e5cf10",
+          "source": "ch7-点估计.md",
+          "section": "7.3 最大似然估计（MLE）"
+        },
+        {
+          "rank": 4,
+          "score": 22.350414,
+          "block_id": "6004da7e0ded9df84b7e2fa6e26dc273514877a80efb688e78ca8dc6c59d17e9",
+          "source": "ch2-概率论基础篇.md",
+          "section": "连续型——分布函数法"
+        },
+        {
+          "rank": 5,
+          "score": 21.641687,
+          "block_id": "bf2cb6a5c7274283316956f5800285eda18e69c0d37a92a3c3939b6cee8d2aed",
+          "source": "ch2-概率论基础篇.md",
+          "section": "分布函数与密度的关系"
+        }
+      ]
+    },
+    {
+      "id": "lexical-06",
+      "kind": "LEXICAL",
+      "query": "互不相容 互斥 独立 区别",
+      "hit": true,
+      "rank": 2,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "83c06ceadac11901bcdae8fcaa0a9de2b04d51249da63f83a9df99a483cecc17",
+        "1c33dc087b09413595aa02f6cc14f78952c88fd5519c19c0af8dd90b2304b187",
+        "9cd5634f232ef35732bcbd2d0dc4ecc7aae9a63a88ddabb0ed42d709d4b625ea"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 38.587577,
+          "block_id": "e01f49c9c2ef59828e5dd9b3af7ff5c190ce48e589d3331cbdc91c93eaec01ef",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "两个事件的独立"
+        },
+        {
+          "rank": 2,
+          "score": 28.40799,
+          "block_id": "83c06ceadac11901bcdae8fcaa0a9de2b04d51249da63f83a9df99a483cecc17",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "容易混淆的两对概念"
+        },
+        {
+          "rank": 3,
+          "score": 28.008628,
+          "block_id": "3ff2e6678da60f111b332fc2ca0b8123ef1379f326aa32c74d27fc768de8884f",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "事件的关系"
+        },
+        {
+          "rank": 4,
+          "score": 25.591878,
+          "block_id": "4fd8f7d41f993aef4f9af568309547df98ced11588a8658b519c134036d9512d",
+          "source": "ch2-概率论基础篇.md",
+          "section": "相关系数"
+        },
+        {
+          "rank": 5,
+          "score": 23.89032,
+          "block_id": "068a156c2bbb2f09ecfe69803f93a8b8649fe5b85ced4ba1cc9a5fef088567eb",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "事件的关系"
+        }
+      ]
+    },
+    {
+      "id": "lexical-07",
+      "kind": "LEXICAL",
+      "query": "分布函数求导得到概率密度",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "bf2cb6a5c7274283316956f5800285eda18e69c0d37a92a3c3939b6cee8d2aed",
+        "b4e7163b2b94b7d1fab4bad7c4920f701fc1099fbf9dd6a86375af30e9160c88"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 52.042833,
+          "block_id": "bf2cb6a5c7274283316956f5800285eda18e69c0d37a92a3c3939b6cee8d2aed",
+          "source": "ch2-概率论基础篇.md",
+          "section": "分布函数与密度的关系"
+        },
+        {
+          "rank": 2,
+          "score": 37.543133,
+          "block_id": "bf4619475c00bdccb7a424273e5d2424c1982eb5314b528859388f2b8effc3a8",
+          "source": "ch2-概率论基础篇.md",
+          "section": "概率密度函数"
+        },
+        {
+          "rank": 3,
+          "score": 37.494586,
+          "block_id": "4f07d1a55e463acd3920bb6456ae4dca83c610afbcb6fd6753e2ae61758cfac5",
+          "source": "ch2-概率论基础篇.md",
+          "section": "概率密度函数"
+        },
+        {
+          "rank": 4,
+          "score": 35.989342,
+          "block_id": "56eacb2f2825f6e98ba2c21d7042623f34acea4d3b81a7106fefa270d3fccc6c",
+          "source": "ch2-概率论基础篇.md",
+          "section": "概率密度函数"
+        },
+        {
+          "rank": 5,
+          "score": 34.852629,
+          "block_id": "6004da7e0ded9df84b7e2fa6e26dc273514877a80efb688e78ca8dc6c59d17e9",
+          "source": "ch2-概率论基础篇.md",
+          "section": "连续型——分布函数法"
+        }
+      ]
+    },
+    {
+      "id": "lexical-08",
+      "kind": "LEXICAL",
+      "query": "指数分布 无记忆性",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "3d1bb21a89741d52c3ffed701193499b46c05afdfe6ddf297b9a47011fcf9674",
+        "632562e06432df6cebde44365786021a89dd6a40eeaa4af28ad0e91fa61f5235",
+        "576aac1438b3ba7b683dfa5636c162cf15d4dc676b145fff0f2cd5185d46309d"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 58.123046,
+          "block_id": "576aac1438b3ba7b683dfa5636c162cf15d4dc676b145fff0f2cd5185d46309d",
+          "source": "ch3-常见分布.md",
+          "section": "指数分布 $X \\sim \\text{Exp}(\\lambda)$"
+        },
+        {
+          "rank": 2,
+          "score": 28.725904,
+          "block_id": "632562e06432df6cebde44365786021a89dd6a40eeaa4af28ad0e91fa61f5235",
+          "source": "ch3-常见分布.md",
+          "section": "指数分布 $X \\sim \\text{Exp}(\\lambda)$"
+        },
+        {
+          "rank": 3,
+          "score": 27.914991,
+          "block_id": "3d1bb21a89741d52c3ffed701193499b46c05afdfe6ddf297b9a47011fcf9674",
+          "source": "ch3-常见分布.md",
+          "section": "指数分布 $X \\sim \\text{Exp}(\\lambda)$"
+        },
+        {
+          "rank": 4,
+          "score": 11.775857,
+          "block_id": "81327a522e06cad6fd16d02f828d5d567f7485a0c0101343e738567c03691b31",
+          "source": "ch4-概率论提高篇.md",
+          "section": "与其他分布的关系"
+        },
+        {
+          "rank": 5,
+          "score": 9.43029,
+          "block_id": "585bd6a3361fd098ad61991a0975eadc7850ff7bb974515df3498df41d64ccf0",
+          "source": "ch2-概率论基础篇.md",
+          "section": "随机变量函数的期望（无需先求分布！）"
+        }
+      ]
+    },
+    {
+      "id": "lexical-09",
+      "kind": "LEXICAL",
+      "query": "标准正态变量平方和 卡方分布",
+      "hit": true,
+      "rank": 3,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "e2cae001c335f894d4756f66d80d86a3a6acad581e555efc88346097a8a5ef81",
+        "cf8f7c41cf35e54be81cc129066d0248084ef2ea6c9fd381ed44ebde6e3a2ca8",
+        "4a864efbd034625f617b4a0044ae53a58a727cb6213632d5af3fa2918a16fb0c"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 34.282073,
+          "block_id": "b731116fb86cfc1715f611fb7d03e92a3b05415804a3ec4c2961c159ef30dcc1",
+          "source": "ch3-常见分布.md",
+          "section": "正态分布 $X \\sim N(\\mu, \\sigma^2)$"
+        },
+        {
+          "rank": 2,
+          "score": 30.882861,
+          "block_id": "3a48eef3ab61793ecbf4b6afb483dd90dc3cc66661ba3e283d868c0a0b94859d",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "基本思想"
+        },
+        {
+          "rank": 3,
+          "score": 30.850098,
+          "block_id": "cf8f7c41cf35e54be81cc129066d0248084ef2ea6c9fd381ed44ebde6e3a2ca8",
+          "source": "ch3-常见分布.md",
+          "section": "卡方分布 $\\chi^2(n)$"
+        },
+        {
+          "rank": 4,
+          "score": 29.538378,
+          "block_id": "56c1fa84be1be398ded80dec55b9a0ebdd14659934b67e1c0f83553ef3e83d61",
+          "source": "ch3-常见分布.md",
+          "section": "正态分布 $X \\sim N(\\mu, \\sigma^2)$"
+        },
+        {
+          "rank": 5,
+          "score": 29.273618,
+          "block_id": "4a864efbd034625f617b4a0044ae53a58a727cb6213632d5af3fa2918a16fb0c",
+          "source": "ch3-常见分布.md",
+          "section": "卡方分布 $\\chi^2(n)$"
+        }
+      ]
+    },
+    {
+      "id": "lexical-10",
+      "kind": "LEXICAL",
+      "query": "重方差公式 条件期望 条件方差",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "71eab912aecb01d8d7231b58ab996f0dfbe5edecfd010232dac4351eb9bb9916",
+        "f95ce175745f8a383ba51de8f7bfc553708e389462ae2c3d831aee7443f9fc39",
+        "c31f4dc975c899ff301af0bf94ff92cff4aef8aa3d4b19cdd0365b17af222c10"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 74.93608,
+          "block_id": "f95ce175745f8a383ba51de8f7bfc553708e389462ae2c3d831aee7443f9fc39",
+          "source": "ch4-概率论提高篇.md",
+          "section": "重方差公式"
+        },
+        {
+          "rank": 2,
+          "score": 43.591073,
+          "block_id": "c31f4dc975c899ff301af0bf94ff92cff4aef8aa3d4b19cdd0365b17af222c10",
+          "source": "ch4-概率论提高篇.md",
+          "section": "重方差公式"
+        },
+        {
+          "rank": 3,
+          "score": 40.951122,
+          "block_id": "71eab912aecb01d8d7231b58ab996f0dfbe5edecfd010232dac4351eb9bb9916",
+          "source": "ch4-概率论提高篇.md",
+          "section": "重方差公式"
+        },
+        {
+          "rank": 4,
+          "score": 40.936621,
+          "block_id": "f37edd16b8261ac84770ff5395cfb2fbaf7da9de869ae451dac65dac24b4a07e",
+          "source": "ch4-概率论提高篇.md",
+          "section": "条件期望"
+        },
+        {
+          "rank": 5,
+          "score": 32.734492,
+          "block_id": "dbd5dbce262c7ace2be9a44e3cfb7213acf98f55481765eb5fc662f855388a7d",
+          "source": "ch4-概率论提高篇.md",
+          "section": "重期望公式"
+        }
+      ]
+    },
+    {
+      "id": "lexical-11",
+      "kind": "LEXICAL",
+      "query": "切比雪夫不等式 概率保守上界",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "1bf1a6f518c25aa4182288fe5e9aa6acf3b534f8ed7d4c00927e20af575b05e6",
+        "9edc62158f4edd8e2fd9ea7ee215888eae63a3a079f05256ec8715e3cdbcf13b",
+        "c334c5013abd7b045a21a9b0a17debecf7c878607dbb6649aad0a477fe07d480",
+        "53b8d9a95a41561e3d3159e7f10a22cfdbb129b8cbe5ee5a401159f7817743ff"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 104.19615,
+          "block_id": "53b8d9a95a41561e3d3159e7f10a22cfdbb129b8cbe5ee5a401159f7817743ff",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "切比雪夫不等式"
+        },
+        {
+          "rank": 2,
+          "score": 76.397085,
+          "block_id": "9edc62158f4edd8e2fd9ea7ee215888eae63a3a079f05256ec8715e3cdbcf13b",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "切比雪夫不等式"
+        },
+        {
+          "rank": 3,
+          "score": 74.476214,
+          "block_id": "c334c5013abd7b045a21a9b0a17debecf7c878607dbb6649aad0a477fe07d480",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "切比雪夫不等式"
+        },
+        {
+          "rank": 4,
+          "score": 67.870656,
+          "block_id": "1bf1a6f518c25aa4182288fe5e9aa6acf3b534f8ed7d4c00927e20af575b05e6",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "切比雪夫不等式"
+        },
+        {
+          "rank": 5,
+          "score": 15.849721,
+          "block_id": "26f60bbcc961adf0ab0da8efb16f3ca48c06453f5073be8c27fb52a882929746",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "事件的运算"
+        }
+      ]
+    },
+    {
+      "id": "lexical-12",
+      "kind": "LEXICAL",
+      "query": "正态总体 样本均值 样本方差 抽样分布",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "d141988552a17610bb9cfc6ec90f7b86db247a385dbc67813956fc5fc590a6f6",
+        "c0ce39302e7190c12db77162eaf6c73139bff22ff46ba6b4715d0ef3c7f9950d",
+        "a561313dc50052a0d040ffb714ec6f7ae247c3cd2cb17a8679fef644426671e3",
+        "6856fe0b25465576adc5bf2b57cbbdba73bb0e5ffefac1290a382a00880f10dd"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 60.024998,
+          "block_id": "6856fe0b25465576adc5bf2b57cbbdba73bb0e5ffefac1290a382a00880f10dd",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 2,
+          "score": 56.423877,
+          "block_id": "d141988552a17610bb9cfc6ec90f7b86db247a385dbc67813956fc5fc590a6f6",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 3,
+          "score": 52.967089,
+          "block_id": "a561313dc50052a0d040ffb714ec6f7ae247c3cd2cb17a8679fef644426671e3",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 4,
+          "score": 48.174096,
+          "block_id": "c0ce39302e7190c12db77162eaf6c73139bff22ff46ba6b4715d0ef3c7f9950d",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 5,
+          "score": 37.745948,
+          "block_id": "b37b5305ed07cb7004ff13ccc61d9f98a9aeead9bc3f1a1fdb199bb46d0dcd7a",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "8.4 正态总体检验总结"
+        }
+      ]
+    },
+    {
+      "id": "lexical-13",
+      "kind": "LEXICAL",
+      "query": "矩估计 样本矩代替总体矩",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "ae08b55527a7728c6556f36e4cb666066a3351690967d87de0bcb0c516fe0231",
+        "a0bd195cf03345f8f4a26dbba0e86b410460acac72b023fef55bc5ef165c7c77",
+        "e6e7584f7d16207f2e07cd7032f292743ee38fd4283abeedbfbf2b26642c9174",
+        "7d11a23ef34a330a98d507015feae7163dec0cf99053952ef5154b34773eedcf"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 79.00733,
+          "block_id": "ae08b55527a7728c6556f36e4cb666066a3351690967d87de0bcb0c516fe0231",
+          "source": "ch7-点估计.md",
+          "section": "7.2 矩估计法"
+        },
+        {
+          "rank": 2,
+          "score": 42.848013,
+          "block_id": "a0bd195cf03345f8f4a26dbba0e86b410460acac72b023fef55bc5ef165c7c77",
+          "source": "ch7-点估计.md",
+          "section": "7.2 矩估计法"
+        },
+        {
+          "rank": 3,
+          "score": 27.772399,
+          "block_id": "7d11a23ef34a330a98d507015feae7163dec0cf99053952ef5154b34773eedcf",
+          "source": "ch7-点估计.md",
+          "section": "7.2 矩估计法"
+        },
+        {
+          "rank": 4,
+          "score": 25.785173,
+          "block_id": "f48b24fbb348d85329d8ca6aa647f7c9eb88caa6262af35a82536254ac93be1b",
+          "source": "ch7-点估计.md",
+          "section": "7.1 点估计的基本概念"
+        },
+        {
+          "rank": 5,
+          "score": 24.832895,
+          "block_id": "e6e7584f7d16207f2e07cd7032f292743ee38fd4283abeedbfbf2b26642c9174",
+          "source": "ch7-点估计.md",
+          "section": "7.2 矩估计法"
+        }
+      ]
+    },
+    {
+      "id": "lexical-14",
+      "kind": "LEXICAL",
+      "query": "假设检验 p值 拒绝原假设",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "77920f01ce8be825337e399de1217c02422a3c52e202bf4309fb0fc2e29f1d69",
+        "c9e8f240a3db579c7795019ed633583c5ee648794e3d5b99cf4876e6e0d68550",
+        "333c64062fe054fd7ab629aea7e69e55429099f469a02736816686c91eba7f6d"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 35.717294,
+          "block_id": "c9e8f240a3db579c7795019ed633583c5ee648794e3d5b99cf4876e6e0d68550",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "检验的 $p$ 值"
+        },
+        {
+          "rank": 2,
+          "score": 33.07271,
+          "block_id": "78aa4741bb05b2fd621fbc1274d00a725e83f2f68f8c367686d91190d8c1be33",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "基本概念"
+        },
+        {
+          "rank": 3,
+          "score": 21.715239,
+          "block_id": "a561313dc50052a0d040ffb714ec6f7ae247c3cd2cb17a8679fef644426671e3",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 4,
+          "score": 20.299798,
+          "block_id": "d2c57e0805d2c7825824cd72c598b84f7a6ed6f1628577bdffdbd1baa08bbd80",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "例题：两正态总体检验（带数字走一遍流水线）"
+        },
+        {
+          "rank": 5,
+          "score": 18.784165,
+          "block_id": "333c64062fe054fd7ab629aea7e69e55429099f469a02736816686c91eba7f6d",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "检验的 $p$ 值"
+        }
+      ]
+    },
+    {
+      "id": "lexical-15",
+      "kind": "LEXICAL",
+      "query": "回归分析 拟合优度 R平方",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "f66c30db4850117a982558549942b60d3a79abe42989008428816e0032a330e7",
+        "ffc42c1e0bf6ad1aac4b15074c2c47bbedeedb65ba3c048c676279c53c351063"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 59.452626,
+          "block_id": "f66c30db4850117a982558549942b60d3a79abe42989008428816e0032a330e7",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "拟合优度 $R^2$"
+        },
+        {
+          "rank": 2,
+          "score": 56.700964,
+          "block_id": "ffc42c1e0bf6ad1aac4b15074c2c47bbedeedb65ba3c048c676279c53c351063",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "拟合优度 $R^2$"
+        },
+        {
+          "rank": 3,
+          "score": 37.379487,
+          "block_id": "bb56b69aa0b855614ba74e70dab9f3969ff08bf4ed64dbae8be3767000438db4",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "第9章 方差分析和回归分析"
+        },
+        {
+          "rank": 4,
+          "score": 18.627725,
+          "block_id": "338c4fbdf91ff0f9b4e09523e96cc30ebcd85317bea4b75c8bbec5c45c2e31ae",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "单因素方差分析"
+        },
+        {
+          "rank": 5,
+          "score": 17.351276,
+          "block_id": "1b6fb6f50a38d4120d0193d0f3abf7320592ae36cddb23a0e84f2229ead2d184",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "单因素方差分析"
+        }
+      ]
+    },
+    {
+      "id": "semantic-01",
+      "kind": "SEMANTIC",
+      "query": "观察到结果以后，怎样反推各个原因发生的可能性",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "670cf3f0e2b76877118b03231819d1a9aa9478d96a4ce2e10308879baecd4994",
+        "6a563591647599dd771e77935c896a1c8cdfacc04a73b66d3d3c733249e8f160",
+        "13742acf4b507d60acf5d55b43a7bc7913cc0549720aeb128c4fc4707b1a8124",
+        "ba475be1f91ab97069c80e86965da637a1d68982497efc7d75907cb52792506b",
+        "05125db044d4313c71e78659c4e028f242a1fed6c80451d5619dc990eb50818c",
+        "020e95ef0c8274b231118f9d0e2f6f46c909efd2a63aefe9d4dd6742afaaa2dd",
+        "e5375bdf80199dadf5ea103d3acf3eb6cd72ab0870b6b3e617a9ff7facc71d78",
+        "a0e56572c05fd497f71389406cafdb3ed1a09e39cf9e71d37a7a22a1b544322c",
+        "68cbab5366721adf8fdbc7b446899d96277ad187eee30246d0f7cad7837dc2cf"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 75.743789,
+          "block_id": "a0e56572c05fd497f71389406cafdb3ed1a09e39cf9e71d37a7a22a1b544322c",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "三个核心公式"
+        },
+        {
+          "rank": 2,
+          "score": 34.684637,
+          "block_id": "9e740944aa1f92b252558a70f9e4b3b93387e741eb94e51af338a7e77a639041",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "基本概念"
+        },
+        {
+          "rank": 3,
+          "score": 24.462633,
+          "block_id": "e8e545b0ab42b7a0c0653911934665afdaa244e204b496f942ac1283642acc0b",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "1.6 条件概率与独立性的综合"
+        },
+        {
+          "rank": 4,
+          "score": 24.02791,
+          "block_id": "77920f01ce8be825337e399de1217c02422a3c52e202bf4309fb0fc2e29f1d69",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "检验的 $p$ 值"
+        },
+        {
+          "rank": 5,
+          "score": 23.362197,
+          "block_id": "7d288fb97b0a7c134c739b156d194b6c5946910d9f48908780e2e281fad488a0",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "条件概率定义"
+        }
+      ]
+    },
+    {
+      "id": "semantic-02",
+      "kind": "SEMANTIC",
+      "query": "随机变量经过不单调变换，拿不准公式时应该怎么求新变量分布",
+      "hit": false,
+      "rank": null,
+      "failure_category": "LEXICAL_RANKING_MISS",
+      "resolved_gold_block_ids": [
+        "429251a3ad4c7684312c4182ab089664b58b5a30bc0eb7d694e19afe07a25a82",
+        "19f156fef78eeef3edab6844a718464e9f92a97365414073afafc25a6b45199f",
+        "b8995f4a9a5e008e390997d31828691571fa6333255ae43fdd136c65b9d5b87f"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 54.017982,
+          "block_id": "c3b3079a8474a8d46b723349a5de96d19d156d1530f22a0d0edaee5cb751314f",
+          "source": "ch4-概率论提高篇.md",
+          "section": "公式法（单调函数）"
+        },
+        {
+          "rank": 2,
+          "score": 35.65161,
+          "block_id": "a3699b93831a18373433e22f8efa6dcacdfe4e50b4c4f5273c38a494c837b0a3",
+          "source": "ch2-概率论基础篇.md",
+          "section": "2.3 一维随机变量函数的分布"
+        },
+        {
+          "rank": 3,
+          "score": 35.321965,
+          "block_id": "ebd35300cb6cd8132010b3d21db70627fe3a06de04a7e82044eea85a51cb14e2",
+          "source": "ch4-概率论提高篇.md",
+          "section": "二维随机变量函数的分布"
+        },
+        {
+          "rank": 4,
+          "score": 34.423615,
+          "block_id": "63dc5b34f9900af64c5c2d5975e5341e7031b6d77bcfc9cf37cb5596afc0cdb2",
+          "source": "ch4-概率论提高篇.md",
+          "section": "二维随机变量函数的分布"
+        },
+        {
+          "rank": 5,
+          "score": 33.106455,
+          "block_id": "365c2a5e3a965015a208b09963b56f6889a22c751ecadcdf3408335071aa21c1",
+          "source": "ch2-概率论基础篇.md",
+          "section": "随机变量的定义"
+        }
+      ]
+    },
+    {
+      "id": "semantic-03",
+      "kind": "SEMANTIC",
+      "query": "总体波动大小未知，怎样给正态总体均值估计一个范围",
+      "hit": true,
+      "rank": 3,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "f95c1b7657486da591dc76ad97093b4394cf2c1cb7ae8152a7bdca4a11af9434"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 46.983471,
+          "block_id": "b37b5305ed07cb7004ff13ccc61d9f98a9aeead9bc3f1a1fdb199bb46d0dcd7a",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "8.4 正态总体检验总结"
+        },
+        {
+          "rank": 2,
+          "score": 45.144381,
+          "block_id": "aeaa31ea0e14ad04e003b5d9b103cfe533eb3a8885de7f4e85fde9c17d0ec274",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "正态总体均值的检验"
+        },
+        {
+          "rank": 3,
+          "score": 37.48344,
+          "block_id": "f95c1b7657486da591dc76ad97093b4394cf2c1cb7ae8152a7bdca4a11af9434",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "正态总体均值的置信区间"
+        },
+        {
+          "rank": 4,
+          "score": 36.701425,
+          "block_id": "a561313dc50052a0d040ffb714ec6f7ae247c3cd2cb17a8679fef644426671e3",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 5,
+          "score": 34.432973,
+          "block_id": "6856fe0b25465576adc5bf2b57cbbdba73bb0e5ffefac1290a382a00880f10dd",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        }
+      ]
+    },
+    {
+      "id": "semantic-04",
+      "kind": "SEMANTIC",
+      "query": "想判断三个以上群体的平均水平有没有差别",
+      "hit": true,
+      "rank": 3,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "c096eab04f188113f4c1fbdb291e8cd5f55e4d35a79f2517c7e128ddb74fd2e9",
+        "36b2c5b5c1076ebc8ce27e6bf8ff6c3858ac80b2fccd64d68b145457390c469f",
+        "3a48eef3ab61793ecbf4b6afb483dd90dc3cc66661ba3e283d868c0a0b94859d",
+        "511448d38f250f491fcc89234f1f843818072ac497453c0d2a9c8513662d354f"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 25.920374,
+          "block_id": "020e95ef0c8274b231118f9d0e2f6f46c909efd2a63aefe9d4dd6742afaaa2dd",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "三个核心公式"
+        },
+        {
+          "rank": 2,
+          "score": 20.223503,
+          "block_id": "e1790a327bd3ba7b6f8419c8c84dfba112f81fb150438454c6d46153e3e963a9",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "基本概念"
+        },
+        {
+          "rank": 3,
+          "score": 17.465968,
+          "block_id": "3a48eef3ab61793ecbf4b6afb483dd90dc3cc66661ba3e283d868c0a0b94859d",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "基本思想"
+        },
+        {
+          "rank": 4,
+          "score": 16.171639,
+          "block_id": "c096eab04f188113f4c1fbdb291e8cd5f55e4d35a79f2517c7e128ddb74fd2e9",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "基本思想"
+        },
+        {
+          "rank": 5,
+          "score": 16.031217,
+          "block_id": "6856fe0b25465576adc5bf2b57cbbdba73bb0e5ffefac1290a382a00880f10dd",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        }
+      ]
+    },
+    {
+      "id": "semantic-05",
+      "kind": "SEMANTIC",
+      "query": "为什么计算样本波动时分母要少一个",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "d932106bb42941a1b868624fa69276552c1e7a231573fe72177cb84a097ccd65",
+        "6f749c66d4fa9d44f32939fdd25190f3586c60c618cbbdf68a58febc26888611",
+        "fb0f13af7c8645407a26838c89f980ba003768e2e3d56510f36d120815a6612f",
+        "153e1470dc36115f23dd2e03e29715cd01e5f497d5895f75ec1194f7e4017012",
+        "52a5d9117d7b1b1220ded9926b12bf4eedd3ed248955c0188507dace6509e869",
+        "d6e5007bb0ea9f10c6b84c1e5b7312b52acef698503b1077e6a5042437e6e27b",
+        "23426a9c7241defef23d16a299d5b18391776b8216be41fb0fedcb6cae2a2b1a",
+        "0606af330c1467fc3b71f16d936239aa0b5437d9dd3c88f8c4a1a1374b198467"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 21.291252,
+          "block_id": "23426a9c7241defef23d16a299d5b18391776b8216be41fb0fedcb6cae2a2b1a",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "常用统计量"
+        },
+        {
+          "rank": 2,
+          "score": 19.089462,
+          "block_id": "69f8dcd0eedbf7b39e8243315dbe7bc2e98f55bf4e5c804171aa8f88d287c731",
+          "source": "ch3-常见分布.md",
+          "section": "上侧分位数"
+        },
+        {
+          "rank": 3,
+          "score": 16.784839,
+          "block_id": "db9bd9dfb74a9744b01aafba408092b77c9c7fa8dde149e8d406d006741a2d17",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "事件的运算"
+        },
+        {
+          "rank": 4,
+          "score": 16.20296,
+          "block_id": "a584ad7a50a09d387f125e016e85712798cf83a15c5ddf54bc7744c4db9f326c",
+          "source": "ch7-点估计.md",
+          "section": "无偏性"
+        },
+        {
+          "rank": 5,
+          "score": 15.742891,
+          "block_id": "a0bd195cf03345f8f4a26dbba0e86b410460acac72b023fef55bc5ef165c7c77",
+          "source": "ch7-点估计.md",
+          "section": "7.2 矩估计法"
+        }
+      ]
+    },
+    {
+      "id": "semantic-06",
+      "kind": "SEMANTIC",
+      "query": "两个变量线性联系为零，能不能说明它们互相独立",
+      "hit": true,
+      "rank": 4,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "d3dd26181ff0942eb7b4ddb8578e5908727f64d024f331dfdbbc1130d31b88af",
+        "156d36afb0daed8c01eb21bed3a53b5c98615b87966dc23846bdd0c73624fea0",
+        "4fd8f7d41f993aef4f9af568309547df98ced11588a8658b519c134036d9512d"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 29.699629,
+          "block_id": "4587551d7c295fdd834ba50798db890420d59b2ad49a94775e3c6d2546c9ecb7",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "两个事件的独立"
+        },
+        {
+          "rank": 2,
+          "score": 29.555044,
+          "block_id": "e01f49c9c2ef59828e5dd9b3af7ff5c190ce48e589d3331cbdc91c93eaec01ef",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "两个事件的独立"
+        },
+        {
+          "rank": 3,
+          "score": 24.88157,
+          "block_id": "808245dfa21ecb1ac67d51b331fe360637675817714a49bf94dc88ed2a0fd91e",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "多个事件的独立"
+        },
+        {
+          "rank": 4,
+          "score": 23.921988,
+          "block_id": "4fd8f7d41f993aef4f9af568309547df98ced11588a8658b519c134036d9512d",
+          "source": "ch2-概率论基础篇.md",
+          "section": "相关系数"
+        },
+        {
+          "rank": 5,
+          "score": 21.338275,
+          "block_id": "4f07d1a55e463acd3920bb6456ae4dca83c610afbcb6fd6753e2ae61758cfac5",
+          "source": "ch2-概率论基础篇.md",
+          "section": "概率密度函数"
+        }
+      ]
+    },
+    {
+      "id": "semantic-07",
+      "kind": "SEMANTIC",
+      "query": "一个解释变量每增加一单位，响应量平均会改变多少",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "635837d13eea78084f9babb614700fe06aa1f60e7bdcbe600e797d578a027bd0",
+        "05bcd96b81e3e637c8e911a7f5d61e273b13de4e6e8c64d0a319ffa716917833",
+        "5d5de6d84685d21516e89d169a96d5b4287341235179f5c0cb385639d23cb1f9",
+        "59ba7f51dbd0a3a8d4f6b33a291b8896f99ad54964b29b0d25309b538f597b30",
+        "66f2472bdd93afbcea7dea9a1d9e663fe9673721a295932a3befbadef92dde05"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 66.788335,
+          "block_id": "66f2472bdd93afbcea7dea9a1d9e663fe9673721a295932a3befbadef92dde05",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "最小二乘估计（LSE）"
+        },
+        {
+          "rank": 2,
+          "score": 19.900754,
+          "block_id": "365c2a5e3a965015a208b09963b56f6889a22c751ecadcdf3408335071aa21c1",
+          "source": "ch2-概率论基础篇.md",
+          "section": "随机变量的定义"
+        },
+        {
+          "rank": 3,
+          "score": 19.176037,
+          "block_id": "5ae27c9c2309d72ced32cbcb7dd50074905bd87a9173562531367bf008301bfc",
+          "source": "ch4-概率论提高篇.md",
+          "section": "条件期望"
+        },
+        {
+          "rank": 4,
+          "score": 16.16538,
+          "block_id": "c90751ce10a8a80d5526a4439566073c18f1cdeb3a1517508d2b9605b152fa8c",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "例题：一元线性回归（带数字走一遍，纯套公式）"
+        },
+        {
+          "rank": 5,
+          "score": 15.683455,
+          "block_id": "c096eab04f188113f4c1fbdb291e8cd5f55e4d35a79f2517c7e128ddb74fd2e9",
+          "source": "ch9-方差分析和回归分析.md",
+          "section": "基本思想"
+        }
+      ]
+    },
+    {
+      "id": "semantic-08",
+      "kind": "SEMANTIC",
+      "query": "两个事件不可能同时发生，是否就说明它们彼此独立",
+      "hit": false,
+      "rank": null,
+      "failure_category": "LEXICAL_RANKING_MISS",
+      "resolved_gold_block_ids": [
+        "83c06ceadac11901bcdae8fcaa0a9de2b04d51249da63f83a9df99a483cecc17",
+        "1c33dc087b09413595aa02f6cc14f78952c88fd5519c19c0af8dd90b2304b187",
+        "9cd5634f232ef35732bcbd2d0dc4ecc7aae9a63a88ddabb0ed42d709d4b625ea"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 47.637243,
+          "block_id": "3ff2e6678da60f111b332fc2ca0b8123ef1379f326aa32c74d27fc768de8884f",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "事件的关系"
+        },
+        {
+          "rank": 2,
+          "score": 45.21042,
+          "block_id": "e01f49c9c2ef59828e5dd9b3af7ff5c190ce48e589d3331cbdc91c93eaec01ef",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "两个事件的独立"
+        },
+        {
+          "rank": 3,
+          "score": 44.602329,
+          "block_id": "db9bd9dfb74a9744b01aafba408092b77c9c7fa8dde149e8d406d006741a2d17",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "事件的运算"
+        },
+        {
+          "rank": 4,
+          "score": 42.201355,
+          "block_id": "4587551d7c295fdd834ba50798db890420d59b2ad49a94775e3c6d2546c9ecb7",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "两个事件的独立"
+        },
+        {
+          "rank": 5,
+          "score": 39.864514,
+          "block_id": "808245dfa21ecb1ac67d51b331fe360637675817714a49bf94dc88ed2a0fd91e",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "多个事件的独立"
+        }
+      ]
+    },
+    {
+      "id": "semantic-09",
+      "kind": "SEMANTIC",
+      "query": "已知两个连续变量的联合密度，怎样只求其中一个变量的密度",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "49dccdb3a99ecb4c55d050649b2530176c3f10fc3b00286d273105318b0635cf",
+        "68b0577db7d0aed58190bdc7d195f6024a7cac68f3c14793f10b24521140d1db"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 38.520342,
+          "block_id": "68b0577db7d0aed58190bdc7d195f6024a7cac68f3c14793f10b24521140d1db",
+          "source": "ch2-概率论基础篇.md",
+          "section": "边缘概率密度"
+        },
+        {
+          "rank": 2,
+          "score": 36.451584,
+          "block_id": "429251a3ad4c7684312c4182ab089664b58b5a30bc0eb7d694e19afe07a25a82",
+          "source": "ch4-概率论提高篇.md",
+          "section": "分布函数法（万能方法）"
+        },
+        {
+          "rank": 3,
+          "score": 31.52776,
+          "block_id": "4f07d1a55e463acd3920bb6456ae4dca83c610afbcb6fd6753e2ae61758cfac5",
+          "source": "ch2-概率论基础篇.md",
+          "section": "概率密度函数"
+        },
+        {
+          "rank": 4,
+          "score": 31.361388,
+          "block_id": "678a2cea7e63f4514938236c85d71d996702ece65c8cf42b41200d75dcba60c2",
+          "source": "ch2-概率论基础篇.md",
+          "section": "联合概率密度 $f(x,y)$"
+        },
+        {
+          "rank": 5,
+          "score": 30.162563,
+          "block_id": "e3b3893db029c7ea513b7c5fee8709faabbf3242f3aa9f60d4bb92b65f9747a3",
+          "source": "ch2-概率论基础篇.md",
+          "section": "联合概率密度 $f(x,y)$"
+        }
+      ]
+    },
+    {
+      "id": "semantic-10",
+      "kind": "SEMANTIC",
+      "query": "设备已经运行一段时间后，未来寿命的分布仍和刚开始一样",
+      "hit": false,
+      "rank": null,
+      "failure_category": "LEXICAL_RANKING_MISS",
+      "resolved_gold_block_ids": [
+        "3d1bb21a89741d52c3ffed701193499b46c05afdfe6ddf297b9a47011fcf9674",
+        "632562e06432df6cebde44365786021a89dd6a40eeaa4af28ad0e91fa61f5235",
+        "576aac1438b3ba7b683dfa5636c162cf15d4dc676b145fff0f2cd5185d46309d"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 23.659457,
+          "block_id": "d141988552a17610bb9cfc6ec90f7b86db247a385dbc67813956fc5fc590a6f6",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 2,
+          "score": 21.829746,
+          "block_id": "a561313dc50052a0d040ffb714ec6f7ae247c3cd2cb17a8679fef644426671e3",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 3,
+          "score": 18.400442,
+          "block_id": "a3699b93831a18373433e22f8efa6dcacdfe4e50b4c4f5273c38a494c837b0a3",
+          "source": "ch2-概率论基础篇.md",
+          "section": "2.3 一维随机变量函数的分布"
+        },
+        {
+          "rank": 4,
+          "score": 17.962418,
+          "block_id": "6856fe0b25465576adc5bf2b57cbbdba73bb0e5ffefac1290a382a00880f10dd",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 5,
+          "score": 14.513259,
+          "block_id": "c0ce39302e7190c12db77162eaf6c73139bff22ff46ba6b4715d0ef3c7f9950d",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        }
+      ]
+    },
+    {
+      "id": "semantic-11",
+      "kind": "SEMANTIC",
+      "query": "若干个相互独立的同参数等待时间相加服从什么分布",
+      "hit": false,
+      "rank": null,
+      "failure_category": "LEXICAL_RANKING_MISS",
+      "resolved_gold_block_ids": [
+        "81327a522e06cad6fd16d02f828d5d567f7485a0c0101343e738567c03691b31",
+        "b95ac7a06c44885176ec2c83367a963b48cad09da9f06a68604401e70bd239d8"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 34.99306,
+          "block_id": "4f0385e70feec772581ed3a2cf68ddd225aa07516bcf5a451558fd0e2a005f23",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "林德伯格-莱维定理（独立同分布CLT）"
+        },
+        {
+          "rank": 2,
+          "score": 32.519035,
+          "block_id": "5a54bcff7749e61d0fe3267d028c90810f3fa2761778dcc8412aeff49a47fa5d",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "林德伯格-莱维定理（独立同分布CLT）"
+        },
+        {
+          "rank": 3,
+          "score": 32.044282,
+          "block_id": "ab389ee99d79b5034a8825930f0a87615e23651ee6ff0cbd3dbe3d528d7f8ca4",
+          "source": "ch3-常见分布.md",
+          "section": "正态分布 $X \\sim N(\\mu, \\sigma^2)$"
+        },
+        {
+          "rank": 4,
+          "score": 31.215501,
+          "block_id": "4587551d7c295fdd834ba50798db890420d59b2ad49a94775e3c6d2546c9ecb7",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "两个事件的独立"
+        },
+        {
+          "rank": 5,
+          "score": 30.584107,
+          "block_id": "b65f6ab83bab1c08bb30c2a4a49ff293c1dfa9da3a4fd3d95283a37ae0ed8f45",
+          "source": "ch1-随机事件及其概率.md",
+          "section": "多个事件的独立"
+        }
+      ]
+    },
+    {
+      "id": "semantic-12",
+      "kind": "SEMANTIC",
+      "query": "重复抽样越来越多时，样本平均值会靠近总体期望",
+      "hit": true,
+      "rank": 5,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "39b9c64a1cd53d3f9be74bd2a5e8657e66dddc3419bfcad36a26c2f89ad5157c",
+        "ee8f12364e8756fbb21572f622470deeba862623d19b077ec695e1e93af01078",
+        "8143f30d0bdf3107411436e53d97b774a04f969b231450bb175f0d21d9339bcc"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 32.986613,
+          "block_id": "d141988552a17610bb9cfc6ec90f7b86db247a385dbc67813956fc5fc590a6f6",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 2,
+          "score": 30.240265,
+          "block_id": "5968e16d987825c95878a968e135e5a79a71715265d1fe159ff14956ff67f41f",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "基本概念"
+        },
+        {
+          "rank": 3,
+          "score": 30.212197,
+          "block_id": "6856fe0b25465576adc5bf2b57cbbdba73bb0e5ffefac1290a382a00880f10dd",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 4,
+          "score": 26.659762,
+          "block_id": "a561313dc50052a0d040ffb714ec6f7ae247c3cd2cb17a8679fef644426671e3",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 5,
+          "score": 25.450233,
+          "block_id": "8143f30d0bdf3107411436e53d97b774a04f969b231450bb175f0d21d9339bcc",
+          "source": "ch5-大数定律和中心极限定理.md",
+          "section": "辛钦大数定律"
+        }
+      ]
+    },
+    {
+      "id": "semantic-13",
+      "kind": "SEMANTIC",
+      "query": "分别看每个群体结论一致，合并数据后趋势却完全反转",
+      "hit": true,
+      "rank": 1,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "3067bf08161e59ed4944433959cd3e52907fe64393b285157fbc9e322b651d42",
+        "98834f796e9d8e528863b1f3e10955434d01dc3c0bab3f52c10359ea44eb7461",
+        "62920e57fea65367bcdd8f4162750b580924cd326d1e725993d0e662318b16b4"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 51.285311,
+          "block_id": "98834f796e9d8e528863b1f3e10955434d01dc3c0bab3f52c10359ea44eb7461",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "6.5 辛普森悖论"
+        },
+        {
+          "rank": 2,
+          "score": 33.995347,
+          "block_id": "3067bf08161e59ed4944433959cd3e52907fe64393b285157fbc9e322b651d42",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "6.5 辛普森悖论"
+        },
+        {
+          "rank": 3,
+          "score": 23.601361,
+          "block_id": "3e960ceb375ae9af5e7523f32042ce4bf0178c96bca29180de578de710704274",
+          "source": "ch7-点估计.md",
+          "section": "相合性（一致性）"
+        },
+        {
+          "rank": 4,
+          "score": 20.609734,
+          "block_id": "f1d7d17a237b9b5b6be10c76ae93525bc21c460a3434a88c517f128870792d65",
+          "source": "ch7-点估计.md",
+          "section": "相合性（一致性）"
+        },
+        {
+          "rank": 5,
+          "score": 19.607914,
+          "block_id": "a67d55617ff54ee12fadd8beef74f0f56277bad222f6ae0e7fe9cca733e3c85a",
+          "source": "ch7-点估计.md",
+          "section": "相合性（一致性）"
+        }
+      ]
+    },
+    {
+      "id": "semantic-14",
+      "kind": "SEMANTIC",
+      "query": "两个估计方法都没有系统偏差，应该比较什么来判断谁更稳定",
+      "hit": true,
+      "rank": 2,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "4e3836750c2bbeb048e0dd7bb198a45ccef6e05069bfe54ee2e569abf600136a"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 29.692211,
+          "block_id": "17b07632a57e4d2556d7c9344c798bbfe0453e6eb6319ff341ff80e287584dbe",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "8.3 两个正态总体的比较"
+        },
+        {
+          "rank": 2,
+          "score": 26.66869,
+          "block_id": "4e3836750c2bbeb048e0dd7bb198a45ccef6e05069bfe54ee2e569abf600136a",
+          "source": "ch7-点估计.md",
+          "section": "有效性"
+        },
+        {
+          "rank": 3,
+          "score": 25.486623,
+          "block_id": "81380d5a0d2689437298a3aa1faacab32048eba4f7cb9671c90ea55c9abec1da",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "8.3 两个正态总体的比较"
+        },
+        {
+          "rank": 4,
+          "score": 23.648177,
+          "block_id": "a584ad7a50a09d387f125e016e85712798cf83a15c5ddf54bc7744c4db9f326c",
+          "source": "ch7-点估计.md",
+          "section": "无偏性"
+        },
+        {
+          "rank": 5,
+          "score": 22.343616,
+          "block_id": "4a44b7f16292076ddaf3eb744633b19431033205474d37098344a0640630b58a",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "例题：两正态总体检验（带数字走一遍流水线）"
+        }
+      ]
+    },
+    {
+      "id": "semantic-15",
+      "kind": "SEMANTIC",
+      "query": "总体服从正态分布但方差不知道，检验均值应选择哪种统计量",
+      "hit": true,
+      "rank": 2,
+      "failure_category": null,
+      "resolved_gold_block_ids": [
+        "aeaa31ea0e14ad04e003b5d9b103cfe533eb3a8885de7f4e85fde9c17d0ec274"
+      ],
+      "top5": [
+        {
+          "rank": 1,
+          "score": 55.614935,
+          "block_id": "b37b5305ed07cb7004ff13ccc61d9f98a9aeead9bc3f1a1fdb199bb46d0dcd7a",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "8.4 正态总体检验总结"
+        },
+        {
+          "rank": 2,
+          "score": 51.550926,
+          "block_id": "aeaa31ea0e14ad04e003b5d9b103cfe533eb3a8885de7f4e85fde9c17d0ec274",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "正态总体均值的检验"
+        },
+        {
+          "rank": 3,
+          "score": 42.968035,
+          "block_id": "a561313dc50052a0d040ffb714ec6f7ae247c3cd2cb17a8679fef644426671e3",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        },
+        {
+          "rank": 4,
+          "score": 41.251541,
+          "block_id": "4a44b7f16292076ddaf3eb744633b19431033205474d37098344a0640630b58a",
+          "source": "ch8-区间估计和假设检验.md",
+          "section": "例题：两正态总体检验（带数字走一遍流水线）"
+        },
+        {
+          "rank": 5,
+          "score": 40.679441,
+          "block_id": "6856fe0b25465576adc5bf2b57cbbdba73bb0e5ffefac1290a382a00880f10dd",
+          "source": "ch6-数理统计知识体系.md",
+          "section": "正态总体的样本均值和方差的分布"
+        }
+      ]
+    }
+  ]
+}
