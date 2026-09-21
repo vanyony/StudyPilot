@@ -140,7 +140,7 @@ evaluation/                        # 冻结数据、结果与实验记录
 ## 本地运行
 
 ```powershell
-git clone git@github.com:vanyony/StudyPilot.git
+git clone https://github.com/vanyony/StudyPilot.git
 cd StudyPilot
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
