@@ -273,6 +273,47 @@ class SQLiteRepository:
                 ),
             )
 
+    def compare_and_swap_teaching_session(
+        self, session: TeachingSession, *, expected_version: int
+    ) -> bool:
+        """Persist a session only when its durable version is still expected.
+
+        The read of the current version and the conditional update must be one
+        SQLite write operation.  Callers can therefore distinguish a stale
+        session from a successful update without relying on an application
+        process lock (which does not coordinate separate processes).
+        """
+
+        if expected_version < 0:
+            raise ValueError("expected_version must be non-negative")
+        self.get_course(session.course_id)
+        self.get_goal(session.goal_id)
+        if session.state is not None:
+            if session.state.course_id != session.course_id:
+                raise ValueError("session state course does not match session")
+            if session.state.goal_id != session.goal_id:
+                raise ValueError("session state goal does not match session")
+        payload = session.model_dump_json()
+        with self._connection() as connection:
+            result = connection.execute(
+                "UPDATE teaching_sessions SET "
+                "thread_id = ?, course_id = ?, goal_id = ?, status = ?, "
+                "version = ?, payload = ?, updated_at = ? "
+                "WHERE session_id = ? AND version = ?",
+                (
+                    session.thread_id,
+                    session.course_id,
+                    session.goal_id,
+                    session.status.value,
+                    session.version,
+                    payload,
+                    session.updated_at.isoformat(),
+                    session.session_id,
+                    expected_version,
+                ),
+            )
+            return result.rowcount == 1
+
     def get_teaching_session(self, session_id: str) -> TeachingSession:
         with self._connection() as connection:
             row = connection.execute(

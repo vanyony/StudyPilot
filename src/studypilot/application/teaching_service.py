@@ -200,9 +200,14 @@ class TeachingSessionService:
             if expected_version is None:
                 raise ExpectedVersionRequired("expected_version is required")
             state = self._state_from_record_or_checkpoint(record)
-            if expected_version != state.version:
-                raise SessionVersionConflict(expected_version, state.version)
             if state.status is not TeachingStatus.WAITING_ANSWER:
+                # A stale request must retain the historical version-conflict
+                # error even when the newer state has already completed.  The
+                # actual write race is still decided by the repository CAS;
+                # this read is only for the existing non-waiting error path.
+                current = self.repository.get_teaching_session(session_id)
+                if current.version != expected_version:
+                    raise SessionVersionConflict(expected_version, current.version)
                 raise SessionStateConflict(
                     f"session is {state.status.value}; an answer is accepted only while WAITING_ANSWER"
                 )
@@ -221,7 +226,7 @@ class TeachingSessionService:
                 raise SessionProviderError(str(error)) from error
             except TeachingWorkflowError as error:
                 raise SessionStateConflict(str(error)) from error
-            self._save_state(record, next_state)
+            self._save_state(record, next_state, expected_version=expected_version)
             self.repository.save_answer_receipt(
                 AnswerReceipt(
                     session_id=session_id,
@@ -275,17 +280,29 @@ class TeachingSessionService:
             return record.state
         return state
 
-    def _save_state(self, record: TeachingSession, state: TeachingSessionState) -> None:
-        self.repository.save_teaching_session(
-            record.model_copy(
-                update={
-                    "status": state.status,
-                    "version": state.version,
-                    "updated_at": datetime.now(UTC),
-                    "state": state,
-                }
-            )
+    def _save_state(
+        self,
+        record: TeachingSession,
+        state: TeachingSessionState,
+        *,
+        expected_version: int | None = None,
+    ) -> None:
+        updated = record.model_copy(
+            update={
+                "status": state.status,
+                "version": state.version,
+                "updated_at": datetime.now(UTC),
+                "state": state,
+            }
         )
+        if expected_version is None:
+            self.repository.save_teaching_session(updated)
+            return
+        if not self.repository.compare_and_swap_teaching_session(
+            updated, expected_version=expected_version
+        ):
+            current = self.repository.get_teaching_session(record.session_id)
+            raise SessionVersionConflict(expected_version, current.version)
 
     def _session_lock(self, session_id: str) -> RLock:
         with self._locks_guard:
