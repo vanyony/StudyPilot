@@ -78,7 +78,9 @@ class TeachingSessionService:
         teacher_provider: TeacherProvider | None = None,
         evaluator: Evaluator | None = None,
         knowledge_window_builder: KnowledgeWindowBuilder | None = None,
+        learning_provider=None,
     ) -> None:
+        self.learning_provider = learning_provider
         self.repository = repository
         self.teacher_provider = teacher_provider
         self.evaluator = evaluator
@@ -95,6 +97,25 @@ class TeachingSessionService:
         for workflow in workflows:
             workflow.close()
 
+    def generate_plan(self, course_id: str, goal_id: str, user_statements=()):
+        goal = self.repository.get_goal(goal_id)
+        if goal.course_id != course_id:
+            raise TeachingServiceError("目标不属于当前课程")
+        runtime = TeachingWorkflow(goal, self.repository.list_topics(course_id), self.repository.database_path,
+            repository=self.repository, learning_provider=self.learning_provider,
+            evaluator=self.evaluator, knowledge_window_builder=self.knowledge_window_builder,
+            user_statements=user_statements)
+        try:
+            plan = runtime.prepare_plan()
+            self.repository.save_plan(plan)
+            return plan
+        except TeachingProviderError as error:
+            raise SessionProviderError(str(error)) from error
+        except TeachingWorkflowError as error:
+            raise SessionStateConflict(str(error)) from error
+        finally:
+            runtime.close()
+
     def create_session(
         self,
         *,
@@ -104,6 +125,7 @@ class TeachingSessionService:
         start: bool = False,
         question: str | None = None,
         scoring_points: Sequence[ScoringPoint] | None = None,
+        user_statements: Sequence[str] = (),
     ) -> TeachingSessionState:
         goal = self.repository.get_goal(goal_id)
         if goal.course_id != course_id:
@@ -136,6 +158,7 @@ class TeachingSessionService:
             version=0,
             question_override=question,
             scoring_points_override=points,
+            user_statements=list(user_statements),
         )
         now = datetime.now(UTC)
         self.repository.save_teaching_session(
@@ -197,8 +220,22 @@ class TeachingSessionService:
                 # Idempotent retry returns the original materialised result,
                 # even if the retry carries the now-advanced version.
                 return receipt.state
+            snapshot_state = self._state_from_record_or_checkpoint(record)
+            checkpoint_hash = snapshot_state.processed_answers.get(message_id)
+            if checkpoint_hash is not None:
+                if snapshot_state.status not in (TeachingStatus.WAITING_ANSWER, TeachingStatus.COMPLETED):
+                    snapshot_state = self.start_session(session_id)
+                if checkpoint_hash != answer_hash:
+                    raise MessageIdConflict("message_id 已处理，但内容不同")
+                self._save_state(record, snapshot_state)
+                self.repository.save_answer_receipt(AnswerReceipt(session_id=session_id, message_id=message_id,
+                    answer_hash=answer_hash, expected_version=max(0, snapshot_state.version - 1), state=snapshot_state))
+                return snapshot_state
             if expected_version is None:
                 raise ExpectedVersionRequired("expected_version is required")
+            # Reject stale input BEFORE touching the checkpoint or calling a model.
+            if record.version != expected_version:
+                raise SessionVersionConflict(expected_version, record.version)
             state = self._state_from_record_or_checkpoint(record)
             if state.status is not TeachingStatus.WAITING_ANSWER:
                 # A stale request must retain the historical version-conflict
@@ -260,6 +297,10 @@ class TeachingSessionService:
                 self.repository.database_path,
                 thread_id=record.thread_id,
                 session_id=record.session_id,
+                learning_provider=self.learning_provider,
+                repository=self.repository,
+                knowledge_window_builder=self.knowledge_window_builder,
+                user_statements=state.user_statements if state else (),
                 teacher_provider=self.teacher_provider,
                 evaluator=self.evaluator,
                 knowledge_window=knowledge_window,

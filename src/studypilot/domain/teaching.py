@@ -114,9 +114,9 @@ class TeachingContent(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    explanation: str = Field(min_length=1, max_length=20_000)
-    question: str = Field(min_length=1, max_length=10_000)
-    scoring_points: tuple[ScoringPoint, ...] = Field(min_length=1)
+    explanation: str = Field(default="", max_length=20_000)
+    question: str = Field(default="", max_length=10_000)
+    scoring_points: tuple[ScoringPoint, ...] = ()
     citations: tuple[str, ...] = ()
 
     @field_validator("citations", mode="before")
@@ -161,6 +161,19 @@ class TeachingSessionState(BaseModel):
     processed_answers: dict[str, str] = Field(default_factory=dict)
     spent_minutes: int = Field(default=0, ge=0)
     teaching_citations: tuple[str, ...] = ()
+    analysis: dict = Field(default_factory=dict)
+    analysis_version: int = 0
+    user_statements: list[str] = Field(default_factory=list)
+    agent_decision: dict | None = None
+    completion_topic_ids: list[str] = Field(default_factory=list)
+    action_history: list[dict] = Field(default_factory=list)
+    observations: list[dict] = Field(default_factory=list)
+    pending_kind: str | None = None
+    return_to_topic: str | None = None
+    round_steps: int = 0
+    stop_reason: str | None = None
+    last_tool_error: str | None = None
+    tool_errors: int = 0
     question_override: str | None = None
     scoring_points_override: tuple[ScoringPoint, ...] | None = None
 

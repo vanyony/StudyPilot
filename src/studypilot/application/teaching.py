@@ -1,7 +1,7 @@
 """Checkpointed LangGraph teaching loop and provider protocols.
 
-The deterministic providers remain the default, while phase-seven callers
-may inject the OpenAI-compatible providers from :mod:`studypilot.application.llm`.
+Production requires configured learning and evaluation providers; deterministic
+providers are explicitly injected by offline tests.
 ``TeachingWorkflow`` accepts a course goal and topics, runs a graph through an
 interrupt, and stores every checkpoint in SQLite so another process can
 construct the graph again with the same ``thread_id`` and resume it.
@@ -10,6 +10,8 @@ construct the graph again with the same ``thread_id`` and resume it.
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
+import json
 import re
 import sqlite3
 from inspect import Parameter, signature
@@ -309,6 +311,7 @@ class _GraphState(TypedDict, total=False):
     question: str | None
     scoring_points: list[dict[str, Any]]
     student_answer: str | None
+    processed_answers: dict[str, str]
     evaluation: dict[str, Any] | None
     mastery_state: str
     mastery_by_topic: dict[str, str]
@@ -320,6 +323,19 @@ class _GraphState(TypedDict, total=False):
     attempt: int
     last_answer_id: str | None
     spent_minutes: int
+    analysis: dict[str, Any]
+    analysis_version: int
+    user_statements: list[str]
+    agent_decision: dict[str, Any] | None
+    action_history: list[dict[str, Any]]
+    completion_topic_ids: list[str]
+    observations: list[dict[str, Any]]
+    pending_kind: str | None
+    return_to_topic: str | None
+    round_steps: int
+    stop_reason: str | None
+    last_tool_error: str | None
+    tool_errors: int
     question_override: str | None
     scoring_points_override: list[dict[str, Any]] | None
 
@@ -342,7 +358,16 @@ class TeachingWorkflow:
         knowledge_window: KnowledgeWindow | None = None,
         question: str | None = None,
         scoring_points: Sequence[ScoringPoint] | None = None,
+        learning_provider=None,
+        repository=None,
+        knowledge_window_builder=None,
+        user_statements: Sequence[str] = (),
     ) -> None:
+        from studypilot.application.learning_agent import LLMLearningProvider
+        self.learning_provider = learning_provider
+        self.repository = repository
+        self.window_builder = knowledge_window_builder
+        self.user_statements = list(user_statements)
         self.goal = goal
         self.topics = tuple(topics)
         if any(topic.course_id != goal.course_id for topic in self.topics):
@@ -352,7 +377,8 @@ class TeachingWorkflow:
         self.thread_id = thread_id or session_id or str(uuid4())
         self.session_id = session_id or self.thread_id
         self.teacher_provider = teacher_provider or DeterministicTeacherProvider()
-        self.evaluator = evaluator or DeterministicFakeEvaluator()
+        self.evaluator = evaluator
+        self._explicit_evaluator = evaluator
         self.knowledge_window = knowledge_window or KnowledgeWindow(
             query=self.topics[0].name if self.topics else goal.id,
             course_id=goal.course_id,
@@ -381,6 +407,20 @@ class TeachingWorkflow:
         self.graph = self._build_graph()
         self.last_result: dict[str, Any] | None = None
 
+    def prepare_plan(self) -> Plan:
+        """Analyze evidence and ask the model for a plan without starting a lesson."""
+        with self._lock:
+            state = self._initial_state()
+            state.update(self._bootstrap_node(state))
+            for _ in range(8):
+                state.update(self._decision_node(state))
+                state.update(self._execute_node(state))
+                if state.get("plan"):
+                    return Plan.model_validate(state["plan"])
+                if state.get("pending_kind"):
+                    raise TeachingWorkflowError(state.get("question") or "制定计划需要补充信息")
+            raise TeachingWorkflowError("本轮未能形成有效计划，请补充资料或目标")
+
     def close(self) -> None:
         with self._lock:
             self._connection.close()
@@ -391,9 +431,12 @@ class TeachingWorkflow:
         with self._lock:
             snapshot = self.graph.get_state(self._config())
             if snapshot.values:
+                if snapshot.next and not snapshot.interrupts:
+                    self.last_result = self.graph.invoke(None, {**self._config(), "recursion_limit": 100})
+                    return self._current_state()
                 return self._materialize(snapshot.values)
             initial = self._initial_state()
-            self.last_result = self.graph.invoke(initial, self._config())
+            self.last_result = self.graph.invoke(initial, {**self._config(), "recursion_limit": 100})
             return self._current_state()
 
     # ``run`` is a small ergonomic alias for callers that think of the graph
@@ -411,7 +454,7 @@ class TeachingWorkflow:
                 raise TeachingWorkflowError("workflow is not waiting for an answer")
             payload = answer if isinstance(answer, dict) else {"answer": answer}
             self.last_result = self.graph.invoke(
-                Command(resume=payload), self._config()
+                Command(resume=payload), {**self._config(), "recursion_limit": 100}
             )
             return self._current_state()
 
@@ -437,130 +480,265 @@ class TeachingWorkflow:
             version=0,
             question_override=self.question_override,
             scoring_points_override=self.scoring_points_override,
+            user_statements=self.user_statements,
         )
         return self._values(state)
 
     def _build_graph(self):
         builder = StateGraph(_GraphState)
-        builder.add_node("planning", self._planning_node)
-        builder.add_node("teaching", self._teaching_node)
-        builder.add_node("questioning", self._questioning_node)
-        builder.add_node("waiting_answer", self._waiting_answer_node)
-        builder.add_node("evaluating", self._evaluating_node)
-        builder.add_node("replanning", self._replanning_node)
-        builder.add_edge(START, "planning")
-        builder.add_conditional_edges(
-            "planning", self._route, {"teaching": "teaching", "complete": END}
-        )
-        builder.add_edge("teaching", "questioning")
-        builder.add_edge("questioning", "waiting_answer")
-        builder.add_edge("waiting_answer", "evaluating")
-        builder.add_edge("evaluating", "replanning")
-        builder.add_conditional_edges(
-            "replanning", self._route, {"teaching": "teaching", "complete": END}
-        )
+        builder.add_node("bootstrap", self._bootstrap_node)
+        builder.add_node("decide", self._decision_node)
+        builder.add_node("execute", self._execute_node)
+        builder.add_node("waiting_answer", self._agent_wait_node)
+        builder.add_node("observe", self._observe_node)
+        builder.add_edge(START, "bootstrap")
+        builder.add_edge("bootstrap", "decide")
+        builder.add_edge("decide", "execute")
+        builder.add_conditional_edges("execute", self._agent_route,
+            {"decide": "decide", "wait": "waiting_answer", "complete": END})
+        builder.add_edge("waiting_answer", "observe")
+        builder.add_edge("observe", "decide")
         return builder.compile(checkpointer=self._checkpointer)
 
-    def _planning_node(self, state: _GraphState) -> dict[str, Any]:
-        plan, current, topics = self._make_plan(state)
-        version = max(1, int(state.get("version", 0)))
-        if current is None:
-            return {
-                "plan": self._values(plan),
-                "current_plan_item": None,
-                "topics": [self._values(topic) for topic in topics],
-                "status": TeachingStatus.COMPLETED.value,
-                "next_action": TeachingAction.COMPLETE.value,
-                "version": version,
-                "replan_reason": "没有可安排的未掌握考点",
-            }
-        return {
-            "plan": self._values(plan),
-            "current_plan_item": self._values(current),
-            "topics": [self._values(topic) for topic in topics],
-            "mastery_state": self._mastery_for(state, current.topic_id, topics).value,
-            "status": TeachingStatus.TEACHING.value,
-            "next_action": TeachingAction.TEACH.value,
-            "version": version,
-            "knowledge_window": None,
-            "replan_reason": None,
-        }
+    def _provider(self):
+        if self.learning_provider is None:
+            from studypilot.application.learning_agent import LLMLearningProvider
+            try:
+                self.learning_provider = LLMLearningProvider()
+            except Exception as error:
+                raise TeachingProviderError("学习 Agent 未配置模型；请设置 LLM API key 和 model") from error
+        return self.learning_provider
 
-    def _teaching_node(self, state: _GraphState) -> dict[str, Any]:
-        if state.get("current_plan_item") is None:
-            return {
-                "status": TeachingStatus.COMPLETED.value,
-                "next_action": TeachingAction.COMPLETE.value,
-            }
-        item = PlanItem.model_validate(state["current_plan_item"])
-        topic = next(topic for topic in self._topics(state) if topic.id == item.topic_id)
-        mastery_state = self._mastery_for(state, item.topic_id, self._topics(state))
-        try:
-            content = _invoke_compatible(
-                self.teacher_provider.teach,
-                topic=topic,
-                knowledge_window=self.knowledge_window,
-                attempt=int(state.get("attempt", 0)) + 1,
-                question_override=state.get("question_override"),
-                scoring_points_override=self._scoring_overrides(state),
-                mastery_state=mastery_state,
-                remaining_minutes=max(0, int(state.get("remaining_minutes", 0))),
-            )
-            if not isinstance(content, TeachingContent):
-                content = TeachingContent.model_validate(content)
-            content = validate_teaching_content_references(content, self.knowledge_window)
-        except TeachingWorkflowError:
-            raise
-        except Exception as error:
-            raise TeachingProviderError("teacher provider failed; no teaching content was committed") from error
-        return {
-            "knowledge_window": self._values(self.knowledge_window),
-            "teaching_text": content.explanation,
-            "teaching_citations": list(content.citations),
-            "question": content.question,
-            "scoring_points": [self._values(point) for point in content.scoring_points],
-            "status": TeachingStatus.QUESTIONING.value,
-            "next_action": TeachingAction.QUESTION.value,
-        }
+    def _bootstrap_node(self, state):
+        if state.get("analysis") or self.repository is None:
+            return {"version": max(1, state.get("version", 0))}
+        from studypilot.application.learning_agent import CourseAnalysis, validate_analysis
+        sources = self.repository.list_sources(self.goal.course_id)
+        source_map = {source.asset.id: source for source in sources}
+        blocks = self.repository.list_blocks(self.goal.course_id)
+        if not blocks and state.get("topics"):
+            return {"analysis": {"assumptions": ["用户手工修正的考点清单；没有自动分析证据"]}, "version": max(1, state.get("version", 0))}
+        if not blocks:
+            raise TeachingWorkflowError("请先上传并解析课程资料，再开始学习")
+        # Deduplicate identical blobs without multiplying exam frequency.
+        seen = set()
+        rows = []
+        for block in blocks:
+            source = source_map.get(block.source_asset_id)
+            key = (source.asset.blob_id if source else block.source_asset_id, block.block_index)
+            if key in seen:
+                continue
+            seen.add(key)
+            rows.append({"block_id": block.id, "text": block.text,
+                "kind": source.asset.document_kind.value if source else "UNKNOWN",
+                "source_id": block.source_asset_id, "section": block.section,
+                "page": block.page_number})
+        statements = state.get("user_statements", [])
+        statement_ids = {f"statement:{i}" for i in range(len(statements))}
+        common = {"course_id": self.goal.course_id, "goal": self._values(self.goal),
+            "user_statements": [{"id": f"statement:{i}", "text": value} for i, value in enumerate(statements)],
+            "existing_topics": state.get("topics", []), "instruction": "已有考点保持稳定 ID，修改依据，不重命名已有 ID"}
+        analysis = None
+        batch, chars = [], 0
+        batches = []
+        for row in rows:
+            # Preserve coverage of large blocks by chunking, never silent truncation.
+            for offset in range(0, len(row["text"]), 12000):
+                chunk = {**row, "text": row["text"][offset:offset + 12000], "offset": offset}
+                if batch and chars + len(chunk["text"]) > 18000:
+                    batches.append(batch); batch, chars = [], 0
+                batch.append(chunk); chars += len(chunk["text"])
+        if batch:
+            batches.append(batch)
+        provider = self._provider()
+        allowed = {row["block_id"] for row in rows}
+        covered = []
+        for batch in batches:
+            try:
+                context = {**common, "blocks": batch,
+                    "previous_analysis": self._values(analysis) if analysis else None}
+                fingerprint = hashlib.sha256(json.dumps(context, sort_keys=True, ensure_ascii=False, default=str).encode()).hexdigest()
+                self._connection.execute("CREATE TABLE IF NOT EXISTS learning_analysis_cache (fingerprint TEXT PRIMARY KEY, result TEXT NOT NULL)")
+                cached = self._connection.execute("SELECT result FROM learning_analysis_cache WHERE fingerprint=?", (fingerprint,)).fetchone()
+                analysis = CourseAnalysis.model_validate(json.loads(cached[0]) if cached else provider.analyze(context))
+                validate_analysis(analysis, self.goal.course_id,
+                    set(covered) | {row["block_id"] for row in batch}, statement_ids)
+                self._connection.execute("INSERT OR IGNORE INTO learning_analysis_cache VALUES (?, ?)", (fingerprint, analysis.model_dump_json()))
+                self._connection.commit()
+            except Exception as error:
+                raise TeachingProviderError("资料分析失败，未提交考点或伪造计划") from error
+            covered.extend(row["block_id"] for row in batch)
+        analysis.covered_block_ids = list(dict.fromkeys(covered))
+        analysis.missing_sources = [source.asset.display_name for source in sources
+            if source.blob.parse_status.value != "READY"]
+        if self.repository:
+            self.repository.save_topics(self.goal.course_id, analysis.topics)
+        return {"analysis": self._values(analysis), "analysis_version": state.get("analysis_version", 0) + 1,
+            "topics": [self._values(topic) for topic in analysis.topics],
+            "mastery_by_topic": {topic.id: state.get("mastery_by_topic", {}).get(topic.id, "UNSEEN") for topic in analysis.topics},
+            "version": max(1, state.get("version", 0)), "plan": None}
 
-    @staticmethod
-    def _questioning_node(state: _GraphState) -> dict[str, Any]:
-        item = PlanItem.model_validate(state["current_plan_item"])
-        attempt = int(state.get("attempt", 0)) + 1
-        return {
-            "question_id": f"{item.topic_id}:attempt-{attempt}",
-            "attempt": attempt,
-            "status": TeachingStatus.WAITING_ANSWER.value,
-            "next_action": TeachingAction.WAITING_ANSWER.value,
-        }
-
-    @staticmethod
-    def _waiting_answer_node(state: _GraphState) -> dict[str, Any]:
-        resumed = interrupt(
-            {
-                "question_id": state.get("question_id"),
-                "question": state.get("question"),
-                "scoring_points": state.get("scoring_points", []),
-                "version": state.get("version", 0),
-            }
-        )
-        if isinstance(resumed, dict):
-            answer = str(resumed.get("answer", "") or "")
-            answer_id = resumed.get("answer_id")
-            spent = int(resumed.get("spent_minutes", 0) or 0)
+    def _decision_node(self, state):
+        from studypilot.application.learning_agent import AgentDecision
+        context = dict(state)
+        context["topics"] = [self._values(topic) for topic in self._topics(state)]
+        context["available_topics"] = [{"id": topic.id, "name": topic.name} for topic in self._topics(state)]
+        context["budget_reference"] = self._values(_planner().build(
+            self.goal.model_copy(update={"available_minutes": max(0, state.get("remaining_minutes", 0))}), self._topics(state)))
+        context["action_history"] = state.get("action_history", [])[-12:]
+        context["observations"] = state.get("observations", [])[-12:]
+        if state.get("stop_reason") == "user_stopped":
+            decision = AgentDecision(action="complete", reason="按你的要求暂停学习", completion_basis="user_stopped")
+        elif state.get("remaining_minutes", 0) <= 0:
+            decision = AgentDecision(action="complete", reason="本轮可用时间已用完", completion_basis="time_exhausted")
+        elif state.get("round_steps", 0) >= 8:
+            decision = AgentDecision(action="ask", reason="本轮已到行动上限，保留进度让学生决定是否继续",
+                question="这一轮先停在这里，当前进度已保存。要继续学习，还是调整目标？")
         else:
-            answer = str(resumed or "")
-            answer_id = None
-            spent = 0
-        return {
-            "student_answer": answer,
-            "last_answer_id": str(answer_id or uuid4()),
-            "spent_minutes": max(0, spent),
-            "status": TeachingStatus.EVALUATING.value,
-            "next_action": TeachingAction.EVALUATE.value,
-        }
+            try:
+                decision = AgentDecision.model_validate(self._provider().decide(context))
+            except Exception as error:
+                raise TeachingProviderError("学习决策失败，未擅自改变状态") from error
+        return {"agent_decision": self._values(decision), "round_steps": state.get("round_steps", 0) + 1,
+            "replan_reason": decision.reason}
+
+    def _execute_node(self, state):
+        try:
+            result = self._execute_action(state)
+            return {**result, "last_tool_error": None, "tool_errors": 0}
+        except (TeachingProviderError, TeachingWorkflowError, ValueError) as error:
+            errors = state.get("tool_errors", 0) + 1
+            update = {"last_tool_error": str(error), "tool_errors": errors, "pending_kind": None}
+            if errors >= 2:
+                update.update({"pending_kind": "ask", "question": "当前安排未通过检查，进度已保留。你可以补充要求或稍后重试。",
+                    "question_id": f"error:{state.get('version', 0)}", "scoring_points": [],
+                    "status": TeachingStatus.WAITING_ANSWER.value, "next_action": TeachingAction.WAITING_ANSWER.value})
+            return update
+
+    def _execute_action(self, state):
+        from studypilot.application.learning_agent import AgentDecision, LearningAction, validate_plan
+        decision = AgentDecision.model_validate(state["agent_decision"])
+        topics = self._topics(state)
+        by_id = {topic.id: topic for topic in topics}
+        topic = by_id.get(decision.topic_id)
+        if decision.topic_id is not None and topic is None:
+            raise TeachingProviderError("模型选择了不存在的考点")
+        if decision.return_to_topic and decision.return_to_topic not in by_id:
+            raise TeachingProviderError("返回目标不存在")
+        history = list(state.get("action_history", []))
+        if len(history) >= 2 and all(item.get("action") == decision.action.value and
+            item.get("topic_id") == decision.topic_id and item.get("version") == state.get("version", 0) and item.get("query") == decision.query for item in history[-2:]):
+            decision = AgentDecision(action="ask", reason="连续行动没有推进，询问学生后再继续",
+                question="这里似乎还没有推进。你想换一种解释、做一道题，还是先调整安排？")
+        history.append({"action": decision.action.value, "topic_id": decision.topic_id, "reason": decision.reason, "version": state.get("version", 0), "query": decision.query})
+        update = {"action_history": history[-100:], "pending_kind": None}
+        if decision.action is LearningAction.COMPLETE:
+            basis = decision.completion_basis
+            required = set(state.get("completion_topic_ids", []))
+            # Replanning cannot erase an unfinished objective to claim success.
+            verified = bool(required) and required <= set(by_id) and all(
+                by_id[topic_id].mastery is MasteryState.READY for topic_id in required)
+            valid = ((basis == "time_exhausted" and state.get("remaining_minutes", 0) <= 0)
+                or (basis == "verified" and verified)
+                or (basis == "user_stopped" and state.get("stop_reason") == "user_stopped"))
+            if not valid:
+                raise TeachingProviderError("没有足够证据结束学习")
+            return {**update, "status": TeachingStatus.COMPLETED.value, "next_action": TeachingAction.COMPLETE.value,
+                "stop_reason": basis, "question": None, "teaching_text": decision.reason}
+        if decision.action is LearningAction.REPLAN:
+            try:
+                validate_plan(decision.plan, topics, self.goal.id, self.goal.course_id, state["remaining_minutes"])
+            except ValueError as error:
+                raise TeachingProviderError(str(error)) from error
+            required = set(state.get("completion_topic_ids", []))
+            required.update(item.topic_id for item in decision.plan.items if item.tier is not PlanTier.DEFER)
+            return {**update, "plan": self._values(decision.plan), "completion_topic_ids": sorted(required)}
+        if decision.action is LearningAction.RETRIEVE:
+            if self.window_builder is None:
+                raise TeachingWorkflowError("资料检索未配置")
+            window = self.window_builder.build(course_id=self.goal.course_id,
+                query=decision.query or (topic.name if topic else self.goal.id), max_blocks=8, max_chars=8000)
+            return {**update, "knowledge_window": self._values(window)}
+        if decision.action is LearningAction.ASK:
+            return {**update, "pending_kind": "ask", "question": decision.question, "scoring_points": [],
+                "question_id": f"ask:{state.get('version', 0)}:{len(history)}", "teaching_text": decision.reason,
+                "status": TeachingStatus.WAITING_ANSWER.value, "next_action": TeachingAction.WAITING_ANSWER.value}
+        if state.get("plan") is None:
+            raise TeachingProviderError("开始教学前需要先生成复习计划")
+        if topic is None:
+            raise TeachingProviderError("教学行动缺少目标考点")
+        # Validate against exactly the evidence supplied to this decision.
+        # The agent can retrieve a new window before changing teaching targets.
+        window = (KnowledgeWindow.model_validate(state["knowledge_window"])
+            if state.get("knowledge_window") else self.knowledge_window)
+        allowed = {item.hit.citation.block_id for item in window.items}
+        cited = set(decision.citations) | {citation for point in decision.scoring_points for citation in point.citations}
+        if not cited <= allowed:
+            raise TeachingProviderError("教学行动引用不属于当前证据窗口")
+        plan = Plan.model_validate(state["plan"])
+        item = next(item for item in plan.items if item.topic_id == topic.id)
+        update.update({"knowledge_window": self._values(window), "current_plan_item": self._values(item),
+            "mastery_state": topic.mastery.value, "teaching_citations": decision.citations,
+            "return_to_topic": decision.return_to_topic or state.get("return_to_topic")})
+        if state.get("return_to_topic") == topic.id and decision.return_to_topic is None:
+            update["return_to_topic"] = None
+        if decision.action is LearningAction.TEACH:
+            # Explanations persist across the following independent practice action.
+            return {**update, "teaching_text": decision.explanation, "question": None,
+                "status": TeachingStatus.TEACHING.value}
+        return {**update, "pending_kind": decision.action.value, "question": decision.question,
+            "scoring_points": [self._values(point) for point in decision.scoring_points],
+            "question_id": f"{topic.id}:attempt-{state.get('attempt', 0) + 1}",
+            "attempt": state.get("attempt", 0) + 1,
+            "status": TeachingStatus.WAITING_ANSWER.value, "next_action": TeachingAction.WAITING_ANSWER.value}
+
+    @staticmethod
+    def _agent_route(state):
+        if state.get("status") == TeachingStatus.COMPLETED.value:
+            return "complete"
+        return "wait" if state.get("pending_kind") else "decide"
+
+    @staticmethod
+    def _agent_wait_node(state):
+        response = interrupt({"question_id": state.get("question_id"), "question": state.get("question"),
+            "kind": state.get("pending_kind"), "version": state.get("version", 0)})
+        response = response if isinstance(response, dict) else {"answer": str(response)}
+        return {"student_answer": str(response.get("answer", "")), "last_answer_id": response.get("answer_id") or str(uuid4()),
+            "spent_minutes": max(0, int(response.get("spent_minutes", 0))), "round_steps": 0}
+
+    def _observe_node(self, state):
+        answer = state.get("student_answer", "")
+        observations = list(state.get("observations", []))
+        command = answer.strip().lower().strip("。.!！?？").strip()
+        commands = ("继续", "continue", "停止学习", "结束学习", "stop")
+        if state.get("pending_kind") == "ask":
+            statements = list(state.get("user_statements", [])) + ([answer] if command not in commands else [])
+            update = {"user_statements": statements}
+            # User supplied a new fact: refresh analysis instead of losing it in chat history.
+            if self.repository and answer.strip() and command not in commands:
+                refreshed = self._bootstrap_node({**state, "analysis": {}, "user_statements": statements})
+                update.update(refreshed)
+        else:
+            update = self._evaluating_node(state)
+            observations.append({"topic_id": state["current_plan_item"]["topic_id"],
+                "kind": state.get("pending_kind"), "answer_id": state.get("last_answer_id"),
+                "evaluation": update["evaluation"]})
+        spent = state.get("spent_minutes", 0)
+        processed = dict(state.get("processed_answers", {}))
+        processed[state["last_answer_id"]] = hashlib.sha256(answer.encode()).hexdigest()
+        return {"processed_answers": processed, **update, "observations": observations[-100:], "pending_kind": None,
+            "remaining_minutes": max(0, state.get("remaining_minutes", 0) - spent),
+            "version": state.get("version", 0) + 1,
+            "stop_reason": "user_stopped" if command in ("停止学习", "结束学习", "stop") else state.get("stop_reason"),
+            "status": TeachingStatus.PLANNING.value}
 
     def _evaluating_node(self, state: _GraphState) -> dict[str, Any]:
+        if self.evaluator is None:
+            try:
+                self.evaluator = LLMEvaluatorProvider.from_env()
+            except Exception as error:
+                raise TeachingProviderError("答案评价未配置模型") from error
+        self.knowledge_window = KnowledgeWindow.model_validate(state["knowledge_window"]) if state.get("knowledge_window") else self.knowledge_window
         points = tuple(
             ScoringPoint.model_validate(point) for point in state.get("scoring_points", [])
         )
@@ -598,57 +776,6 @@ class TeachingWorkflow:
             "status": TeachingStatus.REPLANNING.value,
             "next_action": TeachingAction.REPLAN.value,
         }
-
-    def _replanning_node(self, state: _GraphState) -> dict[str, Any]:
-        previous = PlanItem.model_validate(state["current_plan_item"])
-        old_mastery = MasteryState(state.get("mastery_state", MasteryState.UNSEEN.value))
-        evaluation = EvaluationResult.model_validate(state["evaluation"])
-        spent = max(0, int(state.get("spent_minutes", 0)))
-        remaining = max(0, int(state.get("remaining_minutes", 0)) - spent)
-        replanning_state = dict(state)
-        replanning_state["remaining_minutes"] = remaining
-        plan, current, topics = self._make_plan(replanning_state)
-        common = {
-            "plan": self._values(plan),
-            "topics": [self._values(topic) for topic in topics],
-            "mastery_by_topic": {topic.id: topic.mastery.value for topic in topics},
-            "remaining_minutes": remaining,
-            "version": int(state.get("version", 0)) + 1,
-            "knowledge_window": None,
-        }
-        reason = (
-            f"{evaluation.reason}；{previous.topic_name} 掌握状态从 "
-            f"{old_mastery.value} 迁移到 {evaluation.mastery_state.value}；"
-            f"剩余 {remaining} 分钟"
-        )
-        if current is None:
-            return {
-                **common,
-                "current_plan_item": None,
-                "status": TeachingStatus.COMPLETED.value,
-                "next_action": TeachingAction.COMPLETE.value,
-                "replan_reason": reason + "，没有下一项",
-            }
-        return {
-            **common,
-            "current_plan_item": self._values(current),
-            "mastery_state": self._mastery_for(replanning_state, current.topic_id, topics).value,
-            "status": TeachingStatus.TEACHING.value,
-            "next_action": TeachingAction.TEACH.value,
-            "replan_reason": reason + f"，下一项为 {current.topic_name}",
-        }
-
-    @staticmethod
-    def _route(state: _GraphState) -> str:
-        return "teaching" if state.get("current_plan_item") is not None else "complete"
-
-    def _make_plan(self, state: _GraphState) -> tuple[Plan, PlanItem | None, list[Topic]]:
-        topics = self._topics(state)
-        goal = ExamGoal.model_validate(state["current_goal"])
-        budget = max(0, int(state.get("remaining_minutes", goal.available_minutes)))
-        plan = _planner().build(goal.model_copy(update={"available_minutes": budget}), topics)
-        current = next((item for item in plan.items if item.tier is PlanTier.MUST), None)
-        return plan, current, topics
 
     @staticmethod
     def _topics(state: _GraphState) -> list[Topic]:

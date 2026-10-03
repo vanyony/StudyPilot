@@ -1,6 +1,6 @@
 """OpenAI-compatible teacher and evaluator providers.
 
-The deterministic providers remain the default for local tests.  The classes
+Deterministic providers are explicitly injected for local tests.  The classes
 in this module are an intentionally small, dependency-injected boundary around
 the official ``openai`` Python SDK: configuration comes from a caller or the
 environment, prompts contain only the current teaching context, and every

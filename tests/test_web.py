@@ -35,8 +35,8 @@ def test_study_page_renders_provider_boundary_and_empty_workspace(tmp_path) -> N
 
     assert response.status_code == 200
     assert "本地学习入口" in response.text
-    assert "Deterministic demo（默认）" in response.text
-    assert "未配置 key/model" in response.text
+    assert "学习模型已就绪" in response.text
+    assert "资料分析和教学将使用模型" in response.text
     assert "保存课程" in response.text
 
 
@@ -101,7 +101,7 @@ def test_web_session_shows_question_feedback_and_disabled_submit_script(tmp_path
         assert waiting.status_code == 200
         assert "WAITING_ANSWER" in waiting.text
         assert "提交答案" in waiting.text
-        assert "讲解" in waiting.text
+        assert "问题" in waiting.text
         assert "Knowledge Window 引用" in waiting.text
         assert "teaching-notes.txt" in waiting.text
         assert "posterior probability" in waiting.text

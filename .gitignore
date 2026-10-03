@@ -15,3 +15,11 @@ logs/
 .idea/
 .vscode/
 .DS_Store
+
+/docs/local-cases/
+/docs/superpowers/specs/
+/evaluation/resume_metric_candidate.md
+*.db-wal
+*.db-shm
+*.sqlite3-wal
+*.sqlite3-shm

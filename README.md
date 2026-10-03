@@ -23,39 +23,26 @@ StudyPilot 是一个面向大学期末冲刺场景的跨端学习 Agent。系统
 ## 核心链路
 
 ```text
-课程资料
-   │
-   ├─ Markdown / Text 本地解析
-   └─ PDF / Office 外部 MCP 解析
-   │
-   ▼
-SourceAsset ── content fingerprint ── ContentBlob
-   │
-   ▼
-DocumentBlock ── BM25 / Dense / RRF ── Knowledge Window
-                                                │
-考试目标 + 考点依赖 + 掌握状态 ── Planner ──────┤
-                                                ▼
-            planning → teaching → questioning → interrupt
-                                                   │
-                                         PC / QQ 用户作答
-                                                   │
-            completed ← teaching ← replanning ← evaluating
+课件、往年题、作业 + 考试目标 + 用户补充说明
+        ↓
+解析为原文块 → LLM 分批分析考点、考试证据与前置假设
+        ↓
+LLM 制定初始计划（代码检查预算、引用与依赖）
+        ↓
+学习 Agent 决策 → 检索 / 诊断 / 讲解 / 练习 / 提问 / 修改计划
+        ↑                         ↓
+更新掌握证据与剩余时间 ← 评估学生作答 / 获取补充信息
 ```
+
+用户不必录入考点分值或前置依赖。LLM 根据资料和反馈决定学习行动，LangGraph 承载执行、暂停与恢复；教学不强制每轮同时生成讲解和题目。PC 与 QQ 使用同一会话。
 
 ## 关键设计
 
-### 1. 时间约束下的动态规划
+### 1. 证据驱动的资料分析与模型规划
 
-规划器综合预计分值、出现频率、证据等级、学习成本、前置依赖和掌握缺口，为考点计算可解释收益，并生成三档计划：
+资料按批次覆盖，成功的分析结果按输入指纹保存，失败或重启后复用。模型输出考点、时间与收益估计、候选依赖，并区分资料事实、推测和未知信息，保留原文块或用户陈述引用。重复资料不增加考试频率，答案解析不当作另一份试卷。
 
-- **必学**：在核心时间预算内优先覆盖；
-- **争取**：主路径完成后继续学习；
-- **暂缓**：当前投入产出比不足。
-
-未掌握的前置知识会与目标考点组成候选包，避免只选择高分题型却跳过必要基础。每次作答后，workflow 根据评分点证据更新 `READY / FRAGILE / GAP`，再结合剩余时间重排后续路径。
-
-当前实现是透明、确定性的启发式规划器，不声称求解带依赖约束的全局最优背包问题。
+模型制定包含“必学 / 争取 / 暂缓”的计划，服务端校验考点归属、前置关系和分钟预算。原有依赖包贪心规划器只提供预算参考，不决定所有教学动作。无往年题时仍可依靠课件、作业和用户说明规划，但分布是推测，不保证考试提分。
 
 ### 2. 可追溯的课程资料层
 
@@ -75,18 +62,21 @@ Markdown 与纯文本由本地 parser 处理；PDF 与 Office 文件通过外部
 
 模型返回的引用必须通过持久化证据校验：系统核对 `block_id`、`source_id`、课程、定位字段和原文内容，防止调用方或模型使用不属于窗口的文本伪造引用。
 
-### 4. 可暂停、可恢复的教学工作流
-
-LangGraph 工作流显式拆分为：
+### 4. 可暂停、可恢复的学习 Agent
 
 ```text
-PLANNING → TEACHING → QUESTIONING → WAITING_ANSWER
-WAITING_ANSWER → EVALUATING → REPLANNING → TEACHING / COMPLETED
+bootstrap → decide → execute → decide
+                       │
+                 waiting_answer
+                       │
+                    observe → decide
 ```
 
-`WAITING_ANSWER` 使用 interrupt 暂停，SQLite Checkpoint 以稳定 `thread_id` 保存状态。服务重启后可从等待点恢复，而不是重新生成整段教学过程。
+模型选择检索、诊断、讲解、练习、澄清或调整计划等行动；代码执行并校验。诊断发现前置缺口时可先补基础，保留原目标，随后回到原题；诊断、讲解和练习是独立动作。每轮最多八个行动，重复无进展或连续非法行动会暂停，而不虚报完成。
 
-LLM 只负责生成受约束的讲解、题目与结构化评价建议。最终分数、掌握状态与下一动作由 workflow 根据 rubric 重新计算；超时、非法 JSON、结构不完整和越权引用均显式失败。默认提供确定性 provider，使核心状态机在没有外部模型时也能复现和测试。
+等待用户输入使用 interrupt，SQLite Checkpoint 保存分析、计划、待回答问题、作答证据和返回目标。明确评分规则裁决掌握状态，模型的猜测不能直接标为已掌握。失败节点可续跑；已处理消息与回执共同降低恢复后重复评分。
+
+真实模型必须配置，产品不会默认使用 fake。测试通过显式注入可控模型验证决策路径。服务仍面向单进程，不能声称实现多实例共享锁或模型调用 exactly-once。
 
 ### 5. 跨端一致性
 
@@ -125,7 +115,8 @@ src/studypilot/
 │   ├── parsing.py                 # 本地文档解析边界
 │   ├── external_document_mcp.py   # 外部文档解析 MCP adapter
 │   ├── retrieval.py               # 检索、Knowledge Window 与引用校验
-│   ├── teaching.py                # LangGraph 教学工作流
+│   ├── teaching.py                # LangGraph 学习 Agent 执行与恢复
+│   ├── learning_agent.py          # 模型分析、决策合约与证据/计划校验
 │   ├── teaching_service.py        # Session、幂等与串行边界
 │   ├── llm.py                     # OpenAI-compatible provider
 │   ├── channel.py                 # 平台无关消息路由
@@ -159,7 +150,7 @@ python -m uvicorn studypilot.api:app --reload
 python -m pytest
 ```
 
-当前测试集包含 **87** 个单元与集成测试，覆盖规划规则、内容去重、解析失败、检索隔离、引用校验、工作流暂停/恢复、消息幂等、乐观锁和跨端 Session 等关键路径。
+测试覆盖资料分析、模型规划、前置诊断与返回、分析缓存续跑、非法行动、引用校验、检索、消息幂等、乐观锁和跨端会话。离线测试不代替真实模型语义质量验证。
 
 ## 可选能力
 
@@ -186,7 +177,7 @@ $env:STUDYPILOT_LLM_BASE_URL = "https://example.com/v1"
 $env:STUDYPILOT_LLM_MODEL = "model-name"
 ```
 
-未配置 provider 时使用确定性演示实现，不会伪装成真实模型调用。
+未配置 provider 时，开始学习会明确提示配置缺失；资料导入等基础功能仍可使用。
 
 ### QQ 官方 Bot
 
@@ -210,3 +201,9 @@ $env:STUDYPILOT_QQ_APP_SECRET = "..."
 ## 安全说明
 
 仓库不包含 API Key、QQ App Secret、个人课程原文、运行数据库或本地数据目录。所有外部凭据均通过环境变量注入。
+
+## 学习模型配置
+
+设置 `STUDYPILOT_LLM_API_KEY`、`STUDYPILOT_LLM_MODEL`，按需设置 `STUDYPILOT_LLM_BASE_URL`。学习 Agent 与答案评价复用 OpenAI-compatible SDK 的 JSON 调用和错误处理。未配置时开始学习会显式失败，资料上传等基础功能仍可使用。
+
+学习页面上传 Markdown/Text 自动解析；PDF/Office 使用已注入的外部文档 MCP，没有配置时保留文件并说明尚未解析。资料解析完成后填写考试目标与可用分钟，在“开始复习”补充老师范围或个人情况，无需填写考点清单。手动考点编辑只供可选修正。

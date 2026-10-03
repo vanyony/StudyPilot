@@ -85,6 +85,7 @@ class CreateTeachingSessionRequest(BaseModel):
     auto_start: bool | None = None
     question: str | None = Field(default=None, max_length=10_000)
     scoring_points: list[ScoringPoint] | None = None
+    user_statements: list[str] = Field(default_factory=list, max_length=50)
 
     @property
     def should_start(self) -> bool:
@@ -165,6 +166,7 @@ def create_app(
     *,
     teacher_provider: TeacherProvider | None = None,
     evaluator: Evaluator | None = None,
+    learning_provider=None,
     document_mcp_adapter: ExternalDocumentMCPAdapter | None = None,
     external_document_mcp: ExternalDocumentMCPAdapter | None = None,
 ) -> FastAPI:
@@ -172,7 +174,6 @@ def create_app(
         raise ValueError("provide only one external document MCP adapter")
     document_mcp = document_mcp_adapter or external_document_mcp
     repository = SQLiteRepository(database_path)
-    planner = RevisionPlanner()
     source_importer = SourceImportService(repository, storage_root)
     parse_service = ParseService(repository)
     material_organizer = CourseMaterialOrganizer(
@@ -186,6 +187,7 @@ def create_app(
         teacher_provider=teacher_provider,
         evaluator=evaluator,
         knowledge_window_builder=window_builder,
+        learning_provider=learning_provider,
     )
     channel_service = ChannelService(repository, teaching_service)
 
@@ -279,13 +281,12 @@ def create_app(
     def generate_plan(goal_id: str) -> Plan:
         try:
             goal = repository.get_goal(goal_id)
-            topics = repository.list_topics(goal.course_id)
-            plan = planner.build(goal, topics)
-            repository.save_plan(plan)
-            return plan
+            return teaching_service.generate_plan(goal.course_id, goal_id)
         except NotFoundError as error:
             raise HTTPException(status.HTTP_404_NOT_FOUND, str(error)) from error
-        except PlanningError as error:
+        except SessionProviderError as error:
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(error)) from error
+        except (PlanningError, TeachingServiceError) as error:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(error)) from error
 
     @app.get("/goals/{goal_id}/plan", response_model=Plan)
@@ -456,6 +457,7 @@ def create_app(
                 start=request.should_start,
                 question=request.question,
                 scoring_points=request.scoring_points,
+                user_statements=request.user_statements,
             )
         except NotFoundError as error:
             raise HTTPException(status.HTTP_404_NOT_FOUND, str(error)) from error
@@ -612,27 +614,12 @@ def create_app(
         return f"[{code}] {message}"
 
     def _study_provider_status() -> dict[str, str | bool]:
-        configured = bool(
-            (os.getenv("STUDYPILOT_LLM_API_KEY") or os.getenv("OPENAI_API_KEY"))
-            and (os.getenv("STUDYPILOT_LLM_MODEL") or os.getenv("OPENAI_MODEL"))
-        )
-        injected_llm = isinstance(
-            teaching_service.teacher_provider, LLMTeacherProvider
-        ) or isinstance(teaching_service.evaluator, LLMEvaluatorProvider)
-        if injected_llm:
-            label = "LLM provider（已通过依赖注入）"
-        else:
-            label = "Deterministic demo（默认）"
-        return {
-            "label": label,
-            "llm_configured": configured,
-            "active_llm": injected_llm,
-            "llm_hint": (
-                "已检测到 LLM 环境配置，可在 create_app 中注入 provider"
-                if configured
-                else "未配置 key/model；当前不会调用真实模型"
-            ),
-        }
+        configured = bool((os.getenv("STUDYPILOT_LLM_API_KEY") or os.getenv("OPENAI_API_KEY"))
+            and (os.getenv("STUDYPILOT_LLM_MODEL") or os.getenv("OPENAI_MODEL")))
+        injected = teaching_service.learning_provider is not None
+        return {"label": "学习模型已就绪" if configured or injected else "学习模型未配置",
+            "llm_configured": configured, "active_llm": configured or injected,
+            "llm_hint": "资料分析和教学将使用模型" if configured or injected else "未配置 key/model，请配置后开始学习"}
 
     def _study_context(
         *,
@@ -822,24 +809,23 @@ def create_app(
 
     @app.post("/study/courses/{course_id}/plan", include_in_schema=False)
     def study_generate_plan(
-        course_id: str, goal_id: str = Form()
+        course_id: str, goal_id: str = Form(), user_context: str = Form(default="")
     ) -> RedirectResponse:
         try:
             goal = repository.get_goal(goal_id)
             if goal.course_id != course_id:
                 raise ValueError("目标不属于当前课程")
-            plan = planner.build(goal, repository.list_topics(course_id))
-            repository.save_plan(plan)
+            teaching_service.generate_plan(course_id, goal_id, [user_context] if user_context.strip() else [])
             return _study_redirect(
                 course_id=course_id, goal_id=goal_id, notice="复习计划已生成"
             )
-        except (NotFoundError, PlanningError, ValidationError, ValueError) as error:
+        except (NotFoundError, PlanningError, ValidationError, ValueError, TeachingServiceError) as error:
             return _study_redirect(
                 course_id=course_id, goal_id=goal_id, error=_study_error(error)
             )
 
     @app.post("/study/courses/{course_id}/sources", include_in_schema=False)
-    def study_upload_source(
+    async def study_upload_source(
         course_id: str,
         file: UploadFile = File(),
         document_kind: DocumentKind = Form(DocumentKind.COURSE_MATERIAL),
@@ -847,7 +833,7 @@ def create_app(
         origin: str | None = Form(default=None),
     ) -> RedirectResponse:
         try:
-            source_importer.import_file(
+            source = source_importer.import_file(
                 course_id=course_id,
                 stream=file.file,
                 display_name=file.filename or "unnamed",
@@ -856,8 +842,16 @@ def create_app(
                 origin=origin or None,
                 metadata={},
             )
-            return _study_redirect(course_id=course_id, notice="资料已上传")
-        except (NotFoundError, ValidationError, ValueError, OSError) as error:
+            suffix = Path(source.asset.display_name).suffix.lower()
+            if suffix in (".md", ".txt", ".markdown"):
+                parse_service.parse_source(source.asset.id, ParserKind.MARKDOWN if suffix != ".txt" else ParserKind.TEXT)
+            elif document_mcp is not None:
+                await document_mcp.parse_source(source.asset.id)
+            else:
+                return _study_redirect(course_id=course_id, error="资料已保存；PDF/Office 解析服务未配置，请配置后解析，暂未纳入计划。")
+            material_organizer.refresh(course_id)
+            return _study_redirect(course_id=course_id, notice="资料已上传并解析，可直接开始复习")
+        except (NotFoundError, ValidationError, ValueError, OSError, ExternalDocumentMCPError) as error:
             return _study_redirect(course_id=course_id, error=_study_error(error))
 
     @app.post("/study/sources/{source_id}/parse", include_in_schema=False)
@@ -891,6 +885,7 @@ def create_app(
         course_id: str,
         goal_id: str = Form(),
         session_id: str | None = Form(default=None),
+        user_context: str = Form(default=""),
         start: bool = Form(default=False),
     ) -> RedirectResponse:
         try:
@@ -898,6 +893,7 @@ def create_app(
                 course_id=course_id,
                 goal_id=goal_id,
                 session_id=session_id.strip() if session_id else None,
+                user_statements=[user_context] if user_context.strip() else [],
                 start=start,
             )
             return _study_redirect(

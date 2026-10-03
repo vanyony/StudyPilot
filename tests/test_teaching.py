@@ -91,7 +91,7 @@ def test_answer_evaluation_moves_mastery_state(tmp_path, answer, expected) -> No
     assert state.evaluation is not None
     assert state.evaluation.mastery_state is expected
     assert state.version == 2
-    assert state.replan_reason and expected.value in state.replan_reason
+    assert state.observations[-1]["evaluation"]["mastery_state"] == expected.value
     workflow.close()
 
 
@@ -122,7 +122,7 @@ def test_replanning_selects_next_topic_and_keeps_reason(tmp_path) -> None:
     assert next_state.mastery_by_topic["first"] is MasteryState.READY
     assert next_state.current_plan_item is not None
     assert next_state.current_plan_item.topic_id == "second"
-    assert "first" in (next_state.replan_reason or "")
+    assert next_state.observations[-1]["topic_id"] == "first"
     workflow.close()
 
 

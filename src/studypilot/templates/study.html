@@ -12,7 +12,7 @@
     <div>
       <p class="eyebrow">STUDYPILOT · LOCAL STUDY</p>
       <h1>把今天最值得学的一小块，真正学会</h1>
-      <p class="subtitle">资料、计划和教学 Session 都来自本地 SQLite；页面只是现有服务的轻量入口。</p>
+      <p class="subtitle">交给我课件、往年题和作业，再告诉我还有多少时间。我们一起找出最值得学的内容。</p>
     </div>
     <div class="provider-card" aria-label="provider 状态">
       <span class="status-dot {% if provider.active_llm %}status-ready{% else %}status-demo{% endif %}"></span>
@@ -107,31 +107,6 @@
       </section>
     </div>
 
-    <section class="panel {% if not selected_course_id %}panel-muted{% endif %}">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">TOPICS</p>
-          <h2>考点与预算输入</h2>
-        </div>
-        <span class="hint">每行：id|名称|分值|学习分钟|掌握状态|前置id</span>
-      </div>
-      {% if selected_course_id %}
-      <form method="post" action="/study/courses/{{ selected_course_id }}/topics" class="stack-form">
-        <label>考点清单
-          <textarea name="topics_text" rows="6" required placeholder="bayes|贝叶斯公式|10|20|UNSEEN|
-normal|正态分布|8|15|FRAGILE|">{{ topic_lines }}</textarea>
-        </label>
-        <button class="button" type="submit">保存考点</button>
-      </form>
-      {% if topics %}
-      <div class="table-wrap"><table>
-        <thead><tr><th>考点</th><th>分值</th><th>学习成本</th><th>掌握状态</th></tr></thead>
-        <tbody>{% for topic in topics %}<tr><td>{{ topic.name }} <code>{{ topic.id }}</code></td><td>{{ topic.exam_points }}</td><td>{{ topic.learning_minutes }} 分钟</td><td><span class="mastery mastery-{{ topic.mastery.value|lower }}">{{ topic.mastery.value }}</span></td></tr>{% endfor %}</tbody>
-      </table></div>
-      {% endif %}
-      {% else %}<p class="muted">先选择课程。</p>{% endif %}
-    </section>
-
     <div class="dashboard-grid">
       <section class="panel {% if not selected_goal_id %}panel-muted{% endif %}">
         <div class="panel-heading">
@@ -154,7 +129,7 @@ normal|正态分布|8|15|FRAGILE|">{{ topic_lines }}</textarea>
         {% if selected_course_id %}
         <form method="post" action="/study/courses/{{ selected_course_id }}/sources" enctype="multipart/form-data" class="stack-form">
           <label>上传文件<input name="file" type="file" required></label>
-          <div class="form-row"><label>类型<select name="document_kind"><option value="COURSE_MATERIAL">课程资料</option><option value="PERSONAL_NOTE">个人笔记</option><option value="EXAM_PAPER">真题</option></select></label><label>可信度<select name="trust_level"><option value="MEDIUM">中</option><option value="HIGH">高</option><option value="LOW">低</option></select></label></div>
+          <div class="form-row"><label>类型<select name="document_kind"><option value="COURSE_MATERIAL">课程资料</option><option value="PERSONAL_NOTE">个人笔记</option><option value="EXAM_PAPER">往年题</option><option value="ASSIGNMENT">作业</option><option value="ANSWER_KEY">题目解析</option></select></label><label>可信度<select name="trust_level"><option value="MEDIUM">中</option><option value="HIGH">高</option><option value="LOW">低</option></select></label></div>
           <label>来源说明<input name="origin" placeholder="课程群 / 自己整理"></label>
           <button class="button" type="submit">上传资料</button>
         </form>
@@ -166,13 +141,13 @@ normal|正态分布|8|15|FRAGILE|">{{ topic_lines }}</textarea>
     </div>
 
     <section class="panel {% if not selected_goal_id %}panel-muted{% endif %}">
-      <div class="panel-heading"><div><p class="eyebrow">TEACHING SESSION</p><h2>教学 Session</h2></div></div>
+      <div class="panel-heading"><div><p class="eyebrow">TEACHING SESSION</p><h2>开始复习</h2></div></div>
       {% if selected_goal_id %}
       <form method="post" action="/study/courses/{{ selected_course_id }}/teaching-sessions" class="inline-form">
         <input type="hidden" name="goal_id" value="{{ selected_goal_id }}">
-        <label>Session ID（可选）<input name="session_id" placeholder="自动生成稳定 ID"></label>
-        <label class="checkbox-label"><input type="checkbox" name="start" value="true"> 创建后立即启动</label>
-        <button class="button" type="submit">创建 Session</button>
+        <label>补充说明（可选）<textarea name="user_context" placeholder="例如：还有五天考试；老师说会出作业原题；我对传输层不太熟。"></textarea></label>
+        <label class="checkbox-label"><input type="checkbox" name="start" value="true" checked> 分析资料并开始</label>
+        <button class="button" type="submit">分析资料并开始复习</button>
       </form>
       {% if sessions %}
       <ul class="session-list">{% for session in sessions %}<li class="{% if session.session_id == selected_session_id %}selected{% endif %}"><a href="/study?course_id={{ selected_course_id }}&goal_id={{ selected_goal_id }}&session_id={{ session.session_id }}"><strong>{{ session.session_id }}</strong><span>{{ session.status.value }} · v{{ session.version }}</span></a>{% if session.status.value == 'CREATED' %}<form method="post" action="/study/sessions/{{ session.session_id }}/start"><button class="text-button" type="submit">启动</button></form>{% endif %}</li>{% endfor %}</ul>
@@ -186,6 +161,17 @@ normal|正态分布|8|15|FRAGILE|">{{ topic_lines }}</textarea>
         <div><p class="eyebrow">CURRENT SESSION · {{ teaching_state.session_id }}</p><h2>当前教学状态</h2></div>
         <div class="state-summary"><span class="state-chip">{{ teaching_state.status.value }}</span><span>版本 v{{ teaching_state.version }}</span><span>剩余 {{ teaching_state.remaining_minutes }} 分钟</span><span class="mastery mastery-{{ teaching_state.mastery_state.value|lower }}">{{ teaching_state.mastery_state.value }}</span></div>
       </div>
+      {% if teaching_state.plan %}
+      <article class="lesson"><h3>当前复习安排</h3><ul>{% for item in teaching_state.plan.items %}<li>{{ item.topic_name }} · {{ item.tier.value }} · 预计 {{ item.estimated_minutes }} 分钟 — {{ item.reasons|join('；') }}</li>{% endfor %}</ul></article>
+      {% endif %}
+      {% if teaching_state.analysis %}
+      <details><summary>计划依据与待确认信息</summary>
+        {% for claim in teaching_state.analysis.get('claims', []) %}<p>{% if claim.kind == 'fact' %}资料事实{% elif claim.kind == 'inference' %}推测{% else %}待确认{% endif %}：{{ claim.text }}{% if claim.block_ids %}（{{ claim.block_ids|join('、') }}）{% endif %}</p>{% endfor %}
+        {% for assumption in teaching_state.analysis.get('assumptions', []) %}<p>假设：{{ assumption }}</p>{% endfor %}
+        {% for missing in teaching_state.analysis.get('missing_sources', []) %}<p>尚未解析：{{ missing }}</p>{% endfor %}
+      </details>
+      {% endif %}
+      {% if teaching_state.replan_reason %}<p>{{ teaching_state.replan_reason }}</p>{% endif %}
       {% if teaching_state.teaching_text %}<article class="lesson"><h3>讲解</h3><p>{{ teaching_state.teaching_text }}</p></article>{% endif %}
       {% if teaching_state.question %}<article class="question"><h3>问题</h3><p>{{ teaching_state.question }}</p></article>{% endif %}
 
@@ -193,8 +179,8 @@ normal|正态分布|8|15|FRAGILE|">{{ topic_lines }}</textarea>
       <form method="post" action="/study/sessions/{{ teaching_state.session_id }}/answer" class="answer-form" data-answer-form>
         <input type="hidden" name="message_id" value="{{ teaching_state.session_id }}-{{ teaching_state.version }}-{{ range(1000000)|random }}">
         <input type="hidden" name="expected_version" value="{{ teaching_state.version }}">
-        <label>你的回答<textarea name="answer" rows="5" placeholder="把你真正能复述出来的内容写下来；留空也会被记录为 GAP"></textarea></label>
-        <div class="answer-actions"><label>本轮用时（分钟）<input name="spent_minutes" type="number" min="0" max="100000" value="0"></label><button class="button" type="submit">提交答案</button><span class="muted">提交后会评价并重排下一项。</span></div>
+        <label>你的回答<textarea name="answer" rows="5" placeholder="回答当前问题，或补充考试范围、时间和学习情况"></textarea></label>
+        <div class="answer-actions"><label>本轮用时（分钟）<input name="spent_minutes" type="number" min="0" max="100000" value="0"></label><button class="button" type="submit">提交答案</button><span class="muted">根据你的回答决定下一步。</span></div>
       </form>
       {% elif teaching_state.status.value == 'CREATED' %}<p class="muted">Session 尚未启动。点击上方“启动”。</p>{% endif %}
 
@@ -207,8 +193,34 @@ normal|正态分布|8|15|FRAGILE|">{{ topic_lines }}</textarea>
       {% endif %}
     </section>
     {% endif %}
+    <section class="panel {% if not selected_course_id %}panel-muted{% endif %}">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">TOPICS</p>
+          <h2>可选：修正已分析的考点</h2>
+        </div>
+        <span class="hint">无需填写即可开始学习；仅在需要手动修正时使用。</span>
+      </div>
+      {% if selected_course_id %}
+      <details><summary>手动编辑考点</summary>
+      <form method="post" action="/study/courses/{{ selected_course_id }}/topics" class="stack-form">
+        <label>考点清单
+          <textarea name="topics_text" rows="6" required placeholder="bayes|贝叶斯公式|10|20|UNSEEN|
+normal|正态分布|8|15|FRAGILE|">{{ topic_lines }}</textarea>
+        </label>
+        <button class="button" type="submit">保存考点</button>
+      </form></details>
+      {% if topics %}
+      <div class="table-wrap"><table>
+        <thead><tr><th>考点</th><th>分值</th><th>学习成本</th><th>掌握状态</th></tr></thead>
+        <tbody>{% for topic in topics %}<tr><td>{{ topic.name }} <code>{{ topic.id }}</code></td><td>{{ topic.exam_points }}</td><td>{{ topic.learning_minutes }} 分钟</td><td><span class="mastery mastery-{{ topic.mastery.value|lower }}">{{ topic.mastery.value }}</span></td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% endif %}
+      {% else %}<p class="muted">先选择课程。</p>{% endif %}
+    </section>
+
   </main>
 
-  <footer class="footer">本地 demo · SQLite 持久化 · 默认 Deterministic provider · 不会在未配置时冒充真实模型</footer>
+  <footer class="footer">你的资料和学习进度保存在本地；未配置模型时不会生成虚假的分析。</footer>
 </body>
 </html>

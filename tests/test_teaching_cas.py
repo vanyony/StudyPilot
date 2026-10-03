@@ -168,6 +168,6 @@ def test_submit_answer_uses_cas_for_stale_waiting_version(tmp_path) -> None:
 
     assert conflict.value.expected == started.version
     assert conflict.value.actual == next_state.version
-    assert repository.cas_expected_versions == [started.version, started.version]
+    assert repository.cas_expected_versions == [started.version]
     assert repository.get_teaching_session("session").version == next_state.version
     assert repository.get_answer_receipt("session", "stale-answer") is None
