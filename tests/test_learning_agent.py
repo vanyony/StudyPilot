@@ -45,7 +45,7 @@ class ScriptedModel:
             return AgentDecision(action="replan",reason="根据课程证据制定暂定计划",plan=RevisionPlanner().build(goal,topics))
         self.turn+=1
         if self.turn==1:
-            return AgentDecision(action="diagnose",reason="先验证积分所需的基础",topic_id="derivative",return_to_topic="integral",
+            return AgentDecision(action="diagnose",reason="先验证积分所需的基础",topic_id="derivative",
                 question="求导的基本规则是什么？",scoring_points=[ScoringPoint(id="rule",description="知道求导规则",evidence=("rule",))])
         if self.turn==2:
             return AgentDecision(action="teach",reason="诊断证明基础有缺口，先补必要部分",topic_id="derivative",
@@ -253,3 +253,52 @@ def test_control_reply_punctuation_does_not_trigger_analysis(tmp_path, answer, s
         assert (result["stop_reason"] == "user_stopped") == stopped
     finally:
         runtime.close()
+
+
+@pytest.mark.parametrize("current, selected, pending, expected", [
+    ("integral", "derivative", None, "integral"),
+    (None, "derivative", None, "integral"),
+    ("derivative", "derivative", "integral", "integral"),
+    ("derivative", "algebra", "integral", "integral"),
+    ("derivative", "integral", "integral", None),
+    (None, "unrelated", None, None),
+    ("second_integral", "derivative", None, "second_integral"),
+])
+def test_execution_owns_return_target_without_model_field(tmp_path, current, selected, pending, expected):
+    goal = ExamGoal(id="g",course_id="course",exam_at=datetime(2027,1,1,tzinfo=UTC),available_minutes=60)
+    topics = [topic("algebra"),topic("derivative",prerequisites=("algebra",)),
+        topic("integral",prerequisites=("derivative",)),topic("second_integral",prerequisites=("derivative",)).model_copy(update={"exam_points":9}),topic("unrelated")]
+    plan = RevisionPlanner().build(goal,topics)
+    runtime = TeachingWorkflow(goal,topics,tmp_path/"checkpoint.db")
+    try:
+        state=runtime._initial_state()
+        state.update(plan=plan.model_dump(mode="json"),return_to_topic=pending,
+            current_plan_item=next((item.model_dump(mode="json") for item in plan.items if item.topic_id==current),None),
+            agent_decision=AgentDecision(action="teach",reason="下一学习行动",topic_id=selected,explanation="讲解").model_dump(mode="json"))
+        assert runtime._execute_action(state)["return_to_topic"] == expected
+    finally:
+        runtime.close()
+
+
+def test_deferred_dependents_do_not_create_return_target(tmp_path):
+    goal=ExamGoal(id="g",course_id="course",exam_at=datetime(2027,1,1,tzinfo=UTC),available_minutes=20)
+    topics=[topic("derivative"),topic("integral",prerequisites=("derivative",))]
+    plan=RevisionPlanner().build(goal,topics)
+    plan=plan.model_copy(update={"items":tuple(item.model_copy(update={"tier":PlanTier.DEFER})
+        if item.topic_id=="integral" else item for item in plan.items)})
+    runtime=TeachingWorkflow(goal,topics,tmp_path/"checkpoint.db")
+    try:
+        state=runtime._initial_state()
+        state.update(plan=plan.model_dump(mode="json"),
+            agent_decision=AgentDecision(action="diagnose",reason="只诊断当前考点",topic_id="derivative",
+                question="求导",scoring_points=[ScoringPoint(id="rule",description="规则",evidence=("rule",))]).model_dump(mode="json"))
+        assert runtime._execute_action(state)["return_to_topic"] is None
+    finally:
+        runtime.close()
+
+
+def test_model_cannot_generate_or_overwrite_return_target():
+    from pydantic import ValidationError
+    assert "return_to_topic" not in AgentDecision.model_json_schema()["properties"]
+    with pytest.raises(ValidationError):
+        AgentDecision(action="teach",reason="尝试覆盖",topic_id="derivative",explanation="讲解",return_to_topic="derivative")

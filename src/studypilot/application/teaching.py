@@ -623,8 +623,6 @@ class TeachingWorkflow:
         topic = by_id.get(decision.topic_id)
         if decision.topic_id is not None and topic is None:
             raise TeachingProviderError("模型选择了不存在的考点")
-        if decision.return_to_topic and decision.return_to_topic not in by_id:
-            raise TeachingProviderError("返回目标不存在")
         history = list(state.get("action_history", []))
         if len(history) >= 2 and all(item.get("action") == decision.action.value and
             item.get("topic_id") == decision.topic_id and item.get("version") == state.get("version", 0) and item.get("query") == decision.query for item in history[-2:]):
@@ -679,9 +677,7 @@ class TeachingWorkflow:
         item = next(item for item in plan.items if item.topic_id == topic.id)
         update.update({"knowledge_window": self._values(window), "current_plan_item": self._values(item),
             "mastery_state": topic.mastery.value, "teaching_citations": decision.citations,
-            "return_to_topic": decision.return_to_topic or state.get("return_to_topic")})
-        if state.get("return_to_topic") == topic.id and decision.return_to_topic is None:
-            update["return_to_topic"] = None
+            "return_to_topic": self._return_target(state, topic, plan, by_id)})
         if decision.action is LearningAction.TEACH:
             # Explanations persist across the following independent practice action.
             return {**update, "teaching_text": decision.explanation, "question": None,
@@ -691,6 +687,36 @@ class TeachingWorkflow:
             "question_id": f"{topic.id}:attempt-{state.get('attempt', 0) + 1}",
             "attempt": state.get("attempt", 0) + 1,
             "status": TeachingStatus.WAITING_ANSWER.value, "next_action": TeachingAction.WAITING_ANSWER.value}
+
+    @staticmethod
+    def _return_target(state, selected: Topic, plan: Plan, by_id: dict[str, Topic]):
+        pending = state.get("return_to_topic")
+        if pending:
+            # Keep the original objective through repeated or nested foundation work.
+            return None if selected.id == pending else pending
+
+        def needs_selected(target_id):
+            if target_id == selected.id or target_id not in by_id or by_id[target_id].mastery is MasteryState.READY:
+                return False
+            remaining = list(by_id[target_id].prerequisite_ids)
+            visited = set()
+            while remaining:
+                prerequisite_id = remaining.pop()
+                if prerequisite_id == selected.id:
+                    return True
+                if prerequisite_id not in visited and prerequisite_id in by_id:
+                    visited.add(prerequisite_id)
+                    remaining.extend(by_id[prerequisite_id].prerequisite_ids)
+            return False
+
+        current = state.get("current_plan_item")
+        if current and needs_selected(current["topic_id"]):
+            return current["topic_id"]
+        # Before teaching starts, associate the prerequisite with the earliest
+        # selected downstream objective, never with the prerequisite itself.
+        candidates = sorted((item for item in plan.items if item.tier is not PlanTier.DEFER),
+            key=lambda item: (item.tier is PlanTier.STRIVE, item.order or 100_000))
+        return next((item.topic_id for item in candidates if needs_selected(item.topic_id)), None)
 
     @staticmethod
     def _agent_route(state):

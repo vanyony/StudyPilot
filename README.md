@@ -207,3 +207,5 @@ $env:STUDYPILOT_QQ_APP_SECRET = "..."
 设置 `STUDYPILOT_LLM_API_KEY`、`STUDYPILOT_LLM_MODEL`，按需设置 `STUDYPILOT_LLM_BASE_URL`。学习 Agent 与答案评价复用 OpenAI-compatible SDK 的 JSON 调用和错误处理。未配置时开始学习会显式失败，资料上传等基础功能仍可使用。
 
 学习页面上传 Markdown/Text 自动解析；PDF/Office 使用已注入的外部文档 MCP，没有配置时保留文件并说明尚未解析。资料解析完成后填写考试目标与可用分钟，在“开始复习”补充老师范围或个人情况，无需填写考点清单。手动考点编辑只供可选修正。
+
+前置知识诊断或补习的返回目标由执行层根据当前学习目标、计划和前置关系记录，随 SQLite Checkpoint 保存；模型读取该状态决定后续行动，实际返回后执行层清除标记。返回目标不由模型输出，系统不强制补习后的下一行动。

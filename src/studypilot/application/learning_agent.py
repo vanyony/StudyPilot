@@ -5,7 +5,7 @@ import json
 from enum import StrEnum
 from typing import Any, Protocol
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from studypilot.application.llm import _SDKProvider, LLMResponseValidationError
 from studypilot.domain.models import Topic, Plan, MasteryState
@@ -39,11 +39,11 @@ class CourseAnalysis(BaseModel):
 
 
 class AgentDecision(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     action: LearningAction
     reason: str = Field(min_length=1, max_length=2000)
     topic_id: str | None = None
     query: str | None = Field(default=None, max_length=2000)
-    return_to_topic: str | None = None
     question: str | None = Field(default=None, max_length=10000)
     explanation: str | None = Field(default=None, max_length=20000)
     scoring_points: list[ScoringPoint] = Field(default_factory=list)
@@ -87,7 +87,8 @@ _DECISION_INSTRUCTIONS = """你是学习 Agent，根据目标、资料、当前�
 practice 练习；ask 必要澄清并等待；complete 有依据结束。不要机械讲解出题循环。
 先有可解释计划再教学，初始计划基于资料分析，预算不超 remaining_minutes，前置排在后置之前。
 计划包含所有考点的 MUST/STRIVE/DEFER 与 reasons；MUST 的 order 连续且 estimated_minutes 对应考点。
-需要验证前置时 diagnose，设置 return_to_topic 为原目标题；补完返回，别扩成整章。
+需要验证前置时 diagnose；执行层根据当前目标、计划与前置关系保存 return_to_topic。
+return_to_topic 是只读会话状态，不在输出中填写或修改。补完后参考该目标选择下一行动，别扩成整章。
 不需要诊断的内容直接推进。诊断否定假设就修正路线。根据 evaluation 和 observations 更新计划。
 讲解可换说法，提问须有评分点，引用只能来自当前 knowledge_window。一般基础知识可无引用但注明。
 ask 用于缺失信息/继续学习确认/用户目标补充，不拿它代替评分。一次一个紧凑学习动作。
